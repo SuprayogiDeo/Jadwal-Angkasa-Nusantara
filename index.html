@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Batch 17 Angkasa Nusantara</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FIREBASE SDKS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTSc7MBsyvbMUmHrvKG0GGL8W1VV3eVjQ",
+            authDomain: "jadwal-angkasa-nusantara.firebaseapp.com",
+            projectId: "jadwal-angkasa-nusantara",
+            storageBucket: "jadwal-angkasa-nusantara.firebasestorage.app",
+            messagingSenderId: "968723639221",
+            appId: "1:968723639221:web:edda08d8f61c59004387fc"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Jadikan fungsi Firebase tersedia secara global untuk skrip utama
+        window.firebaseDb = db;
+        window.firebaseAuth = auth;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.signInAnonymously = signInAnonymously;
+        window.globalAppId = typeof __app_id !== 'undefined' ? __app_id : 'jadwal-angkasa-default';
+    </script>
+
+    <style>
+        .jadwal-table { border-collapse: collapse; width: 100%; }
+        .jadwal-table th, .jadwal-table td {
+            border: 1px solid #000;
+            text-align: center;
+            vertical-align: middle;
+            padding: 4px;
+        }
+        .jadwal-table th {
+            background-color: #ffff00;
+            font-weight: bold;
+        }
+        .jadwal-table td.hari-cell {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            height: 80px;
+            padding: 0;
+            width: 15%; 
+        }
+        .jadwal-table td.hari-cell:hover {
+            filter: brightness(0.95);
+        }
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .cell-materi { font-weight: bold; padding: 2px; }
+        .cell-instruktur { font-size: 0.85rem; color: #4b5563; padding: 2px; }
+        .cell-ruang { background-color: #3b82f6; color: white; font-size: 0.85rem; padding: 2px; border-top: 1px solid #000; margin-top: auto;}
+        
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            margin: auto;
+            padding: 10px 0;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        @media screen {
+            .print-only-title { display: none !important; }
+            .week-container { margin-bottom: 0; }
+            .jadwal-table { margin-bottom: -1px; } 
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+            .no-print, button, select, .max-w-7xl, #editModal, #printModal {
+                display: none !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 12px !important;
+            }
+            #scheduleModal {
+                position: static !important;
+                background: white !important;
+                display: block !important;
+            }
+            .week-container {
+                page-break-after: always !important; 
+                page-break-inside: avoid !important; 
+                padding-top: 10px;
+                width: 100%;
+                display: block;
+            }
+            .week-container:last-child {
+                page-break-after: auto !important; 
+            }
+            table { page-break-inside: avoid !important; width: 100% !important; }
+            tr, td, th { page-break-inside: avoid !important; }
+            .cell-content { display: block !important; height: auto !important; }
+            .jadwal-table td.hari-cell { height: 80px !important; }
+            .cell-ruang { margin-top: 4px !important; display: block !important; }
+            .print-only-title { 
+                display: block !important; 
+                text-align: center;
+                margin-bottom: 15px;
+                font-size: 1.4rem !important;
+                font-weight: bold;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans p-6">
+
+    <div class="max-w-7xl mx-auto no-print">
+        <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-md">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-800">Jadwal Materi Batch 17</h1>
+                <p class="text-gray-600">Angkasa Nusantara - <span class="text-green-600 font-bold"><i class="fas fa-cloud"></i> Firebase Sync Aktif</span></p>
+            </div>
+            <button onclick="openSettings()" class="bg-gray-800 text-white px-4 py-2 rounded shadow hover:bg-gray-700 flex items-center gap-2">
+                <i class="fas fa-cog"></i> Pengaturan Data
+            </button>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-4">Pilih Program Studi</h2>
+        <div id="prodiContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Tombol prodi -->
+        </div>
+    </div>
+
+    <!-- MODAL PENGATURAN -->
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
+        <div class="bg-white w-11/12 max-w-4xl h-5/6 rounded-xl shadow-2xl flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+                <h2 class="text-xl font-bold"><i class="fas fa-database mr-2"></i> Pengaturan Data Induk</h2>
+                <button onclick="closeSettings()" class="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Pengaturan Prodi -->
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 class="font-bold mb-3 border-b border-blue-200 pb-2">Daftar Prodi</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="newProdiName" placeholder="Nama Prodi" class="border p-2 rounded w-1/2 text-sm">
+                        <select id="newProdiRoom" class="border p-2 rounded w-1/2 text-sm"></select>
+                        <button onclick="addProdi()" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <ul id="listSettingProdi" class="space-y-2 text-sm"></ul>
+                </div>
+                
+                <!-- Pengaturan Ruang -->
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <h3 class="font-bold mb-3 border-b border-green-200 pb-2">Daftar Ruang Kelas</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="newRoomName" placeholder="Nama Ruangan" class="border p-2 rounded flex-1 text-sm">
+                        <button onclick="addRoom()" class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <ul id="listSettingRoom" class="space-y-2 text-sm"></ul>
+                </div>
+                
+                <!-- Pengaturan Materi -->
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <h3 class="font-bold mb-3 border-b border-purple-200 pb-2">Daftar Materi & Kuota</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="newMateriName" placeholder="Nama Materi" class="border p-2 rounded flex-1 text-sm">
+                        <input type="number" id="newMateriQuota" placeholder="Batas(x)" class="border p-2 rounded w-20 text-sm" title="Kosongkan jika tak terbatas">
+                        <button onclick="addMateri()" class="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <ul id="listSettingMateri" class="space-y-2 text-sm"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TABEL JADWAL -->
+    <div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-40 flex justify-center items-center">
+        <div class="bg-white w-full h-full md:w-11/12 md:h-5/6 md:rounded-xl shadow-2xl flex flex-col relative">
+            
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50 md:rounded-t-xl print-header no-print">
+                <h2 id="scheduleTitle" class="text-2xl font-bold uppercase">JADWAL</h2>
+                
+                <div class="flex items-center gap-2">
+                    <select id="monthSelector" onchange="renderScheduleTable()" class="border p-2 rounded text-lg font-bold bg-white">
+                        <option value="Juli 2026">Juli 2026</option>
+                        <option value="Agustus 2026">Agustus 2026</option>
+                        <option value="September 2026">September 2026</option>
+                        <option value="Oktober 2026">Oktober 2026</option>
+                        <option value="November 2026">November 2026</option>
+                    </select>
+                    
+                    <div class="flex gap-1 ml-2 border-l pl-3 border-gray-300">
+                        <button onclick="addWeek()" class="bg-blue-600 text-white w-10 h-10 rounded shadow hover:bg-blue-700 flex justify-center items-center" title="Tambah Minggu"><i class="fas fa-plus"></i></button>
+                        <button onclick="removeWeek()" class="bg-yellow-500 text-white w-10 h-10 rounded shadow hover:bg-yellow-600 flex justify-center items-center" title="Kurangi Minggu"><i class="fas fa-minus"></i></button>
+                    </div>
+
+                    <button onclick="openPrintModal()" class="bg-green-600 text-white px-4 py-2 h-10 rounded shadow hover:bg-green-700 ml-2 flex items-center gap-2">
+                        <i class="fas fa-file-pdf"></i> Cetak PDF
+                    </button>
+
+                    <button onclick="closeSchedule()" class="bg-red-500 text-white px-4 py-2 h-10 rounded shadow hover:bg-red-600 ml-2"><i class="fas fa-times mr-2"></i>Tutup</button>
+                </div>
+            </div>
+            
+            <div class="p-4 overflow-auto flex-1 bg-white" id="tableWrapper">
+                <!-- Tabel akan dipecah per minggu oleh JS di sini -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT SEL -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
+        <div class="bg-white w-96 p-6 rounded-xl shadow-xl">
+            <h3 class="text-lg font-bold mb-4" id="editTitle">Isi Jadwal</h3>
+            <div class="mb-3">
+                <label class="block text-sm font-bold mb-1">Materi</label>
+                <select id="editMateri" class="w-full border p-2 rounded" onchange="updateMateriInfo()">
+                    <option value="">- Kosong -</option>
+                </select>
+                <p id="materiQuotaInfo" class="text-xs font-semibold mt-1 hidden"></p>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-bold mb-1">Instruktur / Ket (Contoh: Sis)</label>
+                <input type="text" id="editInstruktur" class="w-full border p-2 rounded" placeholder="Nama instruktur">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-bold mb-1">Ruang / Lokasi</label>
+                <select id="editRuang" class="w-full border p-2 rounded"></select>
+            </div>
+            <div class="mb-2 p-2 bg-gray-50 border rounded">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="editFullDay" class="form-checkbox h-4 w-4 text-blue-600">
+                    <span class="text-sm font-bold text-blue-800">Jadikan Full Day (Memenuhi Kolom)</span>
+                </label>
+            </div>
+            <div class="mb-5 p-2 bg-red-50 border rounded">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="editLibur" class="form-checkbox h-4 w-4 text-red-600">
+                    <span class="text-sm font-bold text-red-700">Tandai Libur / Tanggal Merah</span>
+                </label>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeEditModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
+                <button onclick="saveCellData()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MENU CETAK -->
+    <div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
+        <div class="bg-white w-96 p-6 rounded-xl shadow-xl">
+            <h3 class="text-xl font-bold mb-2">Opsi Cetak PDF</h3>
+            <p class="text-sm text-gray-600 mb-4 border-b pb-3">Pilih bulan yang ingin dicetak untuk Prodi ini. (Tiap 1 Minggu otomatis akan menjadi 1 halaman PDF).</p>
+
+            <div class="space-y-2 mb-4" id="printMonthList"></div>
+
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="toggleAllPrintMonths()" class="text-blue-600 text-sm font-bold hover:underline bg-blue-50 px-3 py-1 rounded">Centang/Hapus Semua</button>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button onclick="closePrintModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
+                <button onclick="executePrint()" class="px-4 py-2 bg-green-600 text-white font-bold rounded shadow hover:bg-green-700 flex items-center gap-2">
+                    <i class="fas fa-print"></i> Mulai Cetak
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DATA DEFAULT & VARIABEL GLOBAL
+        // ==========================================
+        let dataProdi = [
+            { id: 'gs1', name: 'GS 1', defaultRoom: 'Ruang Airbus' }, 
+            { id: 'gs2', name: 'GS 2', defaultRoom: 'Ruang Boing' },
+            { id: 'gs3', name: 'GS 3', defaultRoom: 'Ruang Airbus' },
+            { id: 'gs4', name: 'GS 4', defaultRoom: 'Ruang Boing' },
+            { id: 'gs5', name: 'GS 5', defaultRoom: 'Ruang Airbus' },
+            { id: 'fa1', name: 'FA 1', defaultRoom: 'Ruang Boing' },
+            { id: 'fa2', name: 'FA 2', defaultRoom: 'ATR' },
+            { id: 'fa3', name: 'FA 3', defaultRoom: 'ATR' }
+        ];
+
+        let dataRoom = ['Ruang Boing', 'Ruang Airbus', 'ATR', 'Outdoor', 'Kantor Gedung 1'];
+        
+        let dataMateri = [
+            { name: 'Grooming & Attitude', quota: 10 }, { name: 'AVK', quota: 10 },
+            { name: 'Ramp Handling', quota: 10 }, { name: 'Communication Skill', quota: 10 }, 
+            { name: 'Customer Service', quota: 10 }, { name: 'Reservasi & Ticketing', quota: 10 },
+            { name: 'PB Handling', quota: 10 }, { name: 'English Conversation', quota: 10 },
+            { name: 'Japan', quota: 10 }, { name: 'Psikotest', quota: 10 },
+            { name: 'KESAMAPTAAN', quota: 10 }, { name: 'Administration', quota: 10 },
+            { name: 'Perkenalan Staff', quota: 10 }, { name: 'Beauty Class', quota: 10 },
+            { name: 'PHOTOSHOOT', quota: 10 }, { name: 'Aviation Knowledge', quota: 10 },
+            { name: 'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII', quota: 10 },
+            { name: 'SENAM PAGI', quota: 10 }, { name: 'Basic Cabin', quota: 10 },
+            { name: 'Announcement', quota: 10 }, { name: 'Flight Safety', quota: 10 },
+            { name: 'Safety Demo', quota: 10 }, { name: 'Beauty & Handsome Class', quota: 10 },
+            { name: 'Pax & Bag Handling', quota: 10 }, { name: 'Basic Cargo', quota: 10 },
+            { name: 'OUTBOUND', quota: 10 }
+        ];
+
+        const strukturWaktu = [
+            { sesi: 'I', jam: '05.00-06.00' }, { sesi: 'II', jam: '08.00-09.30' },
+            { sesi: 'III', jam: '09.30-11.00' }, { sesi: 'IV', jam: '11.30-13.00' },
+            { sesi: 'V', jam: '13.00-14.30' }, { sesi: 'VI', jam: '15.00-16.30' },
+            { sesi: 'VII', jam: '16.30-18.00' }
+        ];
+        
+        const daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        const listMingguRomawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX']; 
+        const daftarBulan = ['Juli 2026', 'Agustus 2026', 'September 2026', 'Oktober 2026', 'November 2026'];
+
+        const monthBaseDates = {
+            'Juli 2026': '2026-06-29', 'Agustus 2026': '2026-08-03',
+            'September 2026': '2026-08-31', 'Oktober 2026': '2026-09-28',
+            'November 2026': '2026-10-26'
+        };
+
+        function getActiveRoom(baseRoom, bulan) {
+            const monthIndex = daftarBulan.indexOf(bulan);
+            if (monthIndex % 2 !== 0) { 
+                if (baseRoom === 'Ruang Airbus') return 'Ruang Boing';
+                if (baseRoom === 'Ruang Boing') return 'Ruang Airbus';
+            }
+            return baseRoom; 
+        }
+
+        function getDefaultWeeksForMonth(bulan) {
+            if (bulan === 'Juli 2026') return ['I', 'II', 'III', 'IV', 'V'];
+            if (bulan === 'Agustus 2026') return ['VI', 'VII', 'VIII', 'IX'];
+            if (bulan === 'September 2026') return ['X', 'XI', 'XII', 'XIII', 'XIV'];
+            if (bulan === 'Oktober 2026') return ['XV', 'XVI', 'XVII', 'XVIII'];
+            if (bulan === 'November 2026') return ['XIX', 'XX', 'XXI', 'XXII'];
+            return ['I', 'II', 'III', 'IV'];
+        }
+
+        // KOSONGKAN JADWAL: Menyiapkan struktur jadwal yang 100% bersih tanpa skrip otomatis (dummy data)
+        let scheduleData = {};
+        let currentProdi = null;
+        let currentEditCell = null; 
+
+        // ==========================================
+        // FIREBASE INTEGRASI TINGKAT LANJUT
+        // ==========================================
+        
+        function getFirebaseDB() {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (window.firebaseDb && window.firebaseAuth) {
+                        clearInterval(checkInterval);
+                        resolve({
+                            db: window.firebaseDb,
+                            auth: window.firebaseAuth,
+                            doc: window.doc,
+                            setDoc: window.setDoc,
+                            getDoc: window.getDoc,
+                            signInAnonymously: window.signInAnonymously,
+                            appId: window.globalAppId
+                        });
+                    }
+                }, 100); 
+            });
+        }
+
+        function toggleLoading(show) {
+            const loadingHtml = `
+                <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex flex-col justify-center items-center text-white">
+                    <i class="fas fa-spinner fa-spin text-5xl mb-4"></i>
+                    <h2 class="text-xl font-bold">Sinkronisasi Database...</h2>
+                    <p class="text-sm">Tunggu sebentar ya.</p>
+                </div>
+            `;
+            if (show && !document.getElementById('loadingOverlay')) { document.body.insertAdjacentHTML('beforeend', loadingHtml); } 
+            else if (!show) { const overlay = document.getElementById('loadingOverlay'); if(overlay) overlay.remove(); }
+        }
+
+        async function fetchFromCloud() {
+            toggleLoading(true);
+            try {
+                const firebase = await getFirebaseDB();
+                
+                await firebase.signInAnonymously(firebase.auth);
+                if (!firebase.auth.currentUser) return;
+
+                // MENGUBAH PATH KE JADWAL v4 UNTUK MENDAPATKAN KERTAS KERJA 100% KOSONG
+                const docRef = firebase.doc(firebase.db, 'artifacts', firebase.appId, 'public', 'data', 'jadwal_db_v4');
+                const docSnap = await firebase.getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    if (cloudData.prodi) dataProdi = cloudData.prodi;
+                    if (cloudData.room) dataRoom = cloudData.room;
+                    if (cloudData.schedule) scheduleData = cloudData.schedule;
+                    
+                    if (cloudData.materi && cloudData.materi.length > 0) {
+                        if (typeof cloudData.materi[0] === 'string') {
+                            dataMateri = cloudData.materi.map(m => ({ name: m, quota: 10 }));
+                        } else {
+                            dataMateri = cloudData.materi;
+                        }
+                    }
+                    console.log("Data ditarik dari Firebase!");
+                } else {
+                    console.log("Database kosong. Menyiapkan lembar kerja baru tanpa jadwal dummy...");
+                    scheduleData = {}; // Memastikan bersih total
+                    await saveToCloud(firebase);
+                }
+            } catch (error) {
+                console.error("Gagal terhubung ke Firebase:", error);
+            } finally {
+                toggleLoading(false);
+                renderDashboard();
+                updateDropdowns();
+            }
+        }
+
+        async function saveToCloud(firebaseInstance = null) {
+            const packageData = {
+                prodi: dataProdi,
+                room: dataRoom,
+                materi: dataMateri,
+                schedule: scheduleData,
+                updatedAt: new Date().toISOString()
+            };
+            
+            toggleLoading(true);
+            try {
+                const firebase = firebaseInstance || await getFirebaseDB();
+                
+                if (!firebase.auth.currentUser) {
+                    await firebase.signInAnonymously(firebase.auth);
+                }
+                if (!firebase.auth.currentUser) return;
+
+                // SIMPAN KE JADWAL v4
+                const docRef = firebase.doc(firebase.db, 'artifacts', firebase.appId, 'public', 'data', 'jadwal_db_v4');
+                await firebase.setDoc(docRef, packageData);
+                console.log("Data berhasil disimpan ke Firebase!");
+            } catch (error) {
+                console.error("Gagal menyimpan ke Firebase:", error);
+                alert("Gagal terhubung ke Database. Periksa koneksi internet Anda.");
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        function initApp() {
+            fetchFromCloud(); 
+        }
+
+        function saveData() {
+            saveToCloud(); 
+        }
+
+        // ==========================================
+        // FUNGSI LAIN-LAIN 
+        // ==========================================
+        function countMateriUsage(prodiId, materiName) {
+            let count = 0;
+            const prodiData = scheduleData[prodiId];
+            if (!prodiData) return 0;
+            for (const bulan in prodiData) {
+                for (const minggu in prodiData[bulan]) {
+                    for (const sesi in prodiData[bulan][minggu]) {
+                        for (const hari in prodiData[bulan][minggu][sesi]) {
+                            const cell = prodiData[bulan][minggu][sesi][hari];
+                            if (cell && cell.materi === materiName) count++;
+                        }
+                    }
+                }
+            }
+            return count;
+        }
+
+        function updateMateriInfo() {
+            const infoEl = document.getElementById('materiQuotaInfo');
+            const materiName = document.getElementById('editMateri').value;
+            if(!materiName) { infoEl.classList.add('hidden'); return; }
+
+            const materiObj = dataMateri.find(m => m.name === materiName);
+            if(!materiObj) { infoEl.classList.add('hidden'); return; }
+
+            let currentCellMateri = "";
+            if(currentEditCell) {
+                const { bulan, minggu, sesi, hari } = currentEditCell;
+                const existingCell = scheduleData[currentProdi.id]?.[bulan]?.[minggu]?.[sesi]?.[hari];
+                if(existingCell) currentCellMateri = existingCell.materi;
+            }
+
+            let isAlreadyInThisCell = (currentCellMateri === materiName);
+            let usage = countMateriUsage(currentProdi.id, materiName);
+            let text = `Total jadwal di ${currentProdi.name}: ${usage}x.`;
+            
+            if(materiObj.quota > 0) {
+                let sisa = materiObj.quota - usage;
+                if (!isAlreadyInThisCell) {
+                    sisa = sisa - 1;
+                    text = `Terpakai: ${usage}x. (Sisa Kuota: ${sisa}x setelah disimpan)`;
+                } else {
+                    text = `Terpakai: ${usage}x. (Sisa Kuota: ${sisa}x)`;
+                }
+                
+                if(sisa < 0) { infoEl.className = "text-xs font-bold mt-1 text-red-600"; text += " ⚠️ OVERLIMIT!"; } 
+                else if (sisa === 0) { infoEl.className = "text-xs font-bold mt-1 text-orange-600"; text += " ⚠️ Kuota Habis"; } 
+                else { infoEl.className = "text-xs font-semibold mt-1 text-blue-600"; }
+            } else {
+                infoEl.className = "text-xs font-semibold mt-1 text-gray-500";
+            }
+            infoEl.innerText = text;
+            infoEl.classList.remove('hidden');
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById('prodiContainer');
+            container.innerHTML = '';
+            dataProdi.forEach(prodi => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white p-6 rounded-xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition text-left flex flex-col justify-between";
+                btn.onclick = () => openSchedule(prodi);
+                btn.innerHTML = `
+                    <div class="text-2xl font-bold text-gray-800 mb-2">${prodi.name}</div>
+                    <div class="text-sm text-gray-500 flex items-center gap-2">
+                        <i class="fas fa-map-marker-alt text-red-500"></i> ${prodi.defaultRoom}
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function updateDropdowns() {
+            const roomSelect = document.getElementById('newProdiRoom');
+            roomSelect.innerHTML = dataRoom.map(r => `<option value="${r}">${r}</option>`).join('');
+            const editMateri = document.getElementById('editMateri');
+            editMateri.innerHTML = '<option value="">- Kosong -</option>' + dataMateri.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+            const editRuang = document.getElementById('editRuang');
+            editRuang.innerHTML = '<option value="">- Default Ruang Prodi -</option><option value="-">- Tanpa Ruangan -</option>' + dataRoom.map(r => `<option value="${r}">${r}</option>`).join('');
+        }
+
+        function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); renderSettingsLists(); }
+        function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+        
+        function renderSettingsLists() {
+            document.getElementById('listSettingProdi').innerHTML = dataProdi.map((p, index) => `<li class="flex justify-between items-center bg-white p-2 rounded border"><span><b>${p.name}</b> (${p.defaultRoom})</span><button onclick="deleteProdi(${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');
+            document.getElementById('listSettingRoom').innerHTML = dataRoom.map((r, index) => `<li class="flex justify-between items-center bg-white p-2 rounded border"><span>${r}</span><button onclick="deleteRoom(${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');
+            document.getElementById('listSettingMateri').innerHTML = dataMateri.map((m, index) => {
+                let quotaBadge = m.quota > 0 ? `<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2 font-bold">Kuota: ${m.quota}x</span>` : '';
+                return `
+                <li class="flex justify-between items-center bg-white p-2 rounded border">
+                    <div><span class="font-semibold">${m.name}</span>${quotaBadge}</div>
+                    <button onclick="deleteMateri(${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                </li>`;
+            }).join('');
+        }
+
+        function addProdi() { const name = document.getElementById('newProdiName').value.trim(); const room = document.getElementById('newProdiRoom').value; if(!name) return; dataProdi.push({ id: name.toLowerCase().replace(/\s/g, ''), name, defaultRoom: room }); document.getElementById('newProdiName').value = ''; saveData(); renderDashboard(); renderSettingsLists(); }
+        function deleteProdi(index) { if(confirm('Hapus prodi ini?')) { dataProdi.splice(index, 1); saveData(); renderDashboard(); renderSettingsLists(); } }
+        function addRoom() { const val = document.getElementById('newRoomName').value.trim(); if(!val) return; dataRoom.push(val); document.getElementById('newRoomName').value = ''; saveData(); updateDropdowns(); renderSettingsLists(); }
+        function deleteRoom(index) { if(confirm('Hapus ruang ini?')) { dataRoom.splice(index, 1); saveData(); updateDropdowns(); renderSettingsLists(); } }
+        function addMateri() { const val = document.getElementById('newMateriName').value.trim(); const quotaVal = parseInt(document.getElementById('newMateriQuota').value) || 0; if(!val) return; dataMateri.push({ name: val, quota: quotaVal }); document.getElementById('newMateriName').value = ''; document.getElementById('newMateriQuota').value = ''; saveData(); updateDropdowns(); renderSettingsLists(); }
+        function deleteMateri(index) { if(confirm('Hapus materi ini?')) { dataMateri.splice(index, 1); saveData(); updateDropdowns(); renderSettingsLists(); } }
+
+        function openSchedule(prodi) { currentProdi = prodi; document.getElementById('scheduleModal').classList.remove('hidden'); renderScheduleTable(); }
+        function closeSchedule() { document.getElementById('scheduleModal').classList.add('hidden'); currentProdi = null; }
+
+        function buildTableContent(prodi, bulan, wrapperElement) {
+            const activeDefaultRoom = getActiveRoom(prodi.defaultRoom, bulan);
+            if (!scheduleData[prodi.id]) scheduleData[prodi.id] = {};
+            if (!scheduleData[prodi.id][bulan]) scheduleData[prodi.id][bulan] = {};
+
+            let existingWeeks = Object.keys(scheduleData[prodi.id][bulan]);
+            existingWeeks.sort((a, b) => listMingguRomawi.indexOf(a) - listMingguRomawi.indexOf(b));
+
+            if (existingWeeks.length === 0) {
+                let defaultEmptyWeeks = getDefaultWeeksForMonth(bulan);
+                defaultEmptyWeeks.forEach(w => scheduleData[prodi.id][bulan][w] = {});
+                existingWeeks = defaultEmptyWeeks;
+            }
+
+            existingWeeks.forEach((minggu, wIndex) => {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'week-container';
+                
+                const tableNode = document.createElement('table');
+                tableNode.className = 'jadwal-table w-full text-sm';
+                const tbody = document.createElement('tbody');
+                tableNode.appendChild(tbody);
+
+                if (!scheduleData[prodi.id][bulan][minggu]) scheduleData[prodi.id][bulan][minggu] = {};
+                let skipDay = { 'Senin': 0, 'Selasa': 0, 'Rabu': 0, 'Kamis': 0, 'Jumat': 0 };
+
+                const headerTr = document.createElement('tr');
+                headerTr.innerHTML = `<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>`;
+                
+                const fallbackDate = new Date('2026-06-29'); 
+                const weekBaseDate = new Date(monthBaseDates[bulan] || fallbackDate);
+                weekBaseDate.setDate(weekBaseDate.getDate() + (listMingguRomawi.indexOf(minggu) * 7));
+
+                const formattedDates = [];
+                daftarHari.forEach((hari, hIndex) => {
+                    const dayDate = new Date(weekBaseDate);
+                    dayDate.setDate(dayDate.getDate() + hIndex);
+                    
+                    const dd = String(dayDate.getDate()).padStart(2, '0');
+                    const mm = String(dayDate.getMonth() + 1).padStart(2, '0');
+                    const yyyy = dayDate.getFullYear();
+                    const dateString = `${dd}/${mm}/${yyyy}`;
+                    
+                    formattedDates.push(dateString); 
+                    headerTr.innerHTML += `<th>${hari} <br> <span class="text-xs font-normal">(${dateString})</span></th>`;
+                });
+                tbody.appendChild(headerTr);
+
+                strukturWaktu.forEach((waktu, sIndex) => {
+                    if (!scheduleData[prodi.id][bulan][minggu][waktu.sesi]) scheduleData[prodi.id][bulan][minggu][waktu.sesi] = {};
+
+                    const tr = document.createElement('tr');
+                    if (sIndex === 0) {
+                        const tdMinggu = document.createElement('td');
+                        tdMinggu.rowSpan = strukturWaktu.length;
+                        tdMinggu.className = "bg-white font-bold border";
+                        tdMinggu.innerText = minggu;
+                        tr.appendChild(tdMinggu);
+                    }
+                    tr.innerHTML += `<td class="font-bold border">${waktu.sesi}</td><td class="font-bold border">${waktu.jam}</td>`;
+
+                    daftarHari.forEach((hari, hIndex) => {
+                        if (skipDay[hari] > 0) { skipDay[hari]--; return; }
+
+                        const td = document.createElement('td');
+                        const cellData = scheduleData[prodi.id][bulan][minggu][waktu.sesi][hari] || { materi: '', instruktur: '', ruang: '' };
+                        const targetDateString = formattedDates[hIndex]; 
+
+                        const autoPengukuhan = cellData.materi === 'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';
+                        const isFull = cellData.isFullDay || autoPengukuhan;
+
+                        td.className = 'hari-cell border ' + (cellData.isLibur ? 'bg-red-400 text-white' : '');
+
+                        if (isFull) {
+                            const spanCount = strukturWaktu.length - sIndex;
+                            td.rowSpan = spanCount;
+                            skipDay[hari] = spanCount - 1; 
+                        }
+
+                        let htmlContent = '<div class="cell-content ' + (isFull ? 'justify-center items-center' : '') + '">';
+                        if (cellData.materi) {
+                            const textClass = (isFull && autoPengukuhan) ? 'writing-vertical' : '';
+                            htmlContent += `<div class="cell-materi ${textClass}">${cellData.materi}</div>`;
+                            if (cellData.instruktur) htmlContent += `<div class="cell-instruktur">${cellData.instruktur}</div>`;
+                            
+                            let displayRuang = cellData.ruang;
+                            if (!displayRuang || displayRuang === '') { displayRuang = activeDefaultRoom; } 
+                            else if (displayRuang === '-') { displayRuang = ''; }
+
+                            if (displayRuang) {
+                                const ruangColor = cellData.isLibur ? 'bg-red-600' : 'bg-blue-500';
+                                htmlContent += `<div class="cell-ruang ${ruangColor}">${displayRuang}</div>`;
+                            }
+                        }
+                        htmlContent += '</div>';
+
+                        td.innerHTML = htmlContent;
+                        td.onclick = () => openEditModal(bulan, minggu, waktu.sesi, hari, cellData, targetDateString);
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+
+                weekDiv.appendChild(tableNode);
+                wrapperElement.appendChild(weekDiv);
+            });
+        }
+
+        function renderScheduleTable() {
+            const wrapper = document.getElementById('tableWrapper');
+            wrapper.innerHTML = '';
+            if (!currentProdi) return;
+            const bulan = document.getElementById('monthSelector').value;
+            const activeDefaultRoom = getActiveRoom(currentProdi.defaultRoom, bulan);
+            document.getElementById('scheduleTitle').innerText = `JADWAL MATERI - ${currentProdi.name} (${activeDefaultRoom}) - ${bulan}`;
+            buildTableContent(currentProdi, bulan, wrapper);
+        }
+
+        function openPrintModal() {
+            const listDiv = document.getElementById('printMonthList');
+            const currentSelectedMonth = document.getElementById('monthSelector').value;
+            listDiv.innerHTML = daftarBulan.map(bulan => {
+                const isChecked = (bulan === currentSelectedMonth) ? 'checked' : '';
+                return `
+                <label class="flex items-center space-x-3 cursor-pointer p-3 hover:bg-gray-50 rounded border border-gray-200">
+                    <input type="checkbox" value="${bulan}" class="print-month-cb form-checkbox h-5 w-5 text-blue-600" ${isChecked}>
+                    <span class="text-sm font-bold text-gray-800">Bulan ${bulan}</span>
+                </label>`;
+            }).join('');
+            document.getElementById('printModal').classList.remove('hidden');
+        }
+
+        function closePrintModal() { document.getElementById('printModal').classList.add('hidden'); }
+
+        let allSelected = false;
+        function toggleAllPrintMonths() {
+            allSelected = !allSelected;
+            document.querySelectorAll('.print-month-cb').forEach(cb => cb.checked = allSelected);
+        }
+
+        function executePrint() {
+            const checkedMonths = Array.from(document.querySelectorAll('.print-month-cb:checked')).map(cb => cb.value);
+            if(checkedMonths.length === 0) { alert('Pilih minimal 1 bulan untuk dicetak!'); return; }
+            closePrintModal();
+
+            const wrapper = document.getElementById('tableWrapper');
+            wrapper.innerHTML = '';
+
+            checkedMonths.forEach((bulan, index) => {
+                const activeDefaultRoom = getActiveRoom(currentProdi.defaultRoom, bulan);
+                const titleHTML = `<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${activeDefaultRoom}) - ${bulan}</h2>`;
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'print-section';
+                sectionDiv.innerHTML = titleHTML;
+                buildTableContent(currentProdi, bulan, sectionDiv);
+                wrapper.appendChild(sectionDiv);
+            });
+
+            document.getElementById('scheduleTitle').classList.add('no-print');
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.getElementById('scheduleTitle').classList.remove('no-print');
+                    renderScheduleTable(); 
+                }, 500);
+            }, 300);
+        }
+
+        function addWeek() {
+            const bulan = document.getElementById('monthSelector').value;
+            let existingWeeks = Object.keys(scheduleData[currentProdi.id][bulan] || {});
+            if (existingWeeks.length >= listMingguRomawi.length) { alert('Maksimal jumlah minggu tercapai.'); return; }
+            let maxIndex = -1;
+            existingWeeks.forEach(w => { let idx = listMingguRomawi.indexOf(w); if(idx > maxIndex) maxIndex = idx; });
+            const nextWeek = listMingguRomawi[maxIndex + 1] || listMingguRomawi[existingWeeks.length];
+            if (!scheduleData[currentProdi.id][bulan]) scheduleData[currentProdi.id][bulan] = {};
+            scheduleData[currentProdi.id][bulan][nextWeek] = {}; 
+            saveData(); renderScheduleTable();
+        }
+
+        function removeWeek() {
+            const bulan = document.getElementById('monthSelector').value;
+            let existingWeeks = Object.keys(scheduleData[currentProdi.id][bulan] || {});
+            if (existingWeeks.length <= 1) { alert('Minimal harus tersisa 1 minggu.'); return; }
+            existingWeeks.sort((a, b) => listMingguRomawi.indexOf(a) - listMingguRomawi.indexOf(b));
+            const lastWeek = existingWeeks[existingWeeks.length - 1];
+            if(confirm(`Yakin ingin menghapus tabel Minggu Ke-${lastWeek}? Data di dalamnya akan hilang.`)) {
+                delete scheduleData[currentProdi.id][bulan][lastWeek]; saveData(); renderScheduleTable();
+            }
+        }
+
+        function openEditModal(bulan, minggu, sesi, hari, cellData, targetDateString) {
+            currentEditCell = { bulan, minggu, sesi, hari };
+            document.getElementById('editTitle').innerText = `Isi Jadwal: ${hari} (${targetDateString}), Minggu ${minggu} (${sesi})`;
+            document.getElementById('editMateri').value = cellData.materi || '';
+            document.getElementById('editInstruktur').value = cellData.instruktur || '';
+            document.getElementById('editRuang').value = cellData.ruang || '';
+            document.getElementById('editFullDay').checked = cellData.isFullDay || false;
+            document.getElementById('editLibur').checked = cellData.isLibur || false;
+            updateMateriInfo();
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); currentEditCell = null; }
+
+        function saveCellData() {
+            if(!currentEditCell) return;
+            const { bulan, minggu, sesi, hari } = currentEditCell;
+            const materiName = document.getElementById('editMateri').value;
+            const instrukturName = document.getElementById('editInstruktur').value;
+            const ruangName = document.getElementById('editRuang').value;
+            const isFullDay = document.getElementById('editFullDay').checked;
+            const isLibur = document.getElementById('editLibur').checked;
+
+            // --- FITUR BARU: CEK BENTROK LINTAS PRODI ---
+            // Hanya lakukan pengecekan jika pengguna benar-benar memilih suatu materi
+            if (materiName !== "") {
+                let bentrokProdi = null;
+                
+                // Looping untuk mengecek semua prodi
+                for (const prodiObj of dataProdi) {
+                    const prodiId = prodiObj.id;
+                    
+                    // Jangan mengecek prodi yang sedang aktif (prodi sendiri)
+                    if (prodiId === currentProdi.id) continue;
+
+                    // Cek apakah ada jadwal di prodi lain pada waktu yang persis sama
+                    const selProdiLain = scheduleData[prodiId]?.[bulan]?.[minggu]?.[sesi]?.[hari];
+                    
+                    // Jika ada jadwal, dan nama materinya sama dengan yang mau diinput
+                    if (selProdiLain && selProdiLain.materi === materiName) {
+                        bentrokProdi = prodiObj.name;
+                        break; // Hentikan pencarian jika sudah ketemu 1 bentrokan
+                    }
+                }
+
+                // Jika ditemukan bentrokan, tampilkan alert dan hentikan proses save
+                if (bentrokProdi) {
+                    alert(`Gagal menyimpan! Materi "${materiName}" sudah dijadwalkan di kelas ${bentrokProdi} pada waktu yang sama. Silakan pilih jadwal lain.`);
+                    return;
+                }
+            }
+            // --------------------------------------------
+
+            scheduleData[currentProdi.id][bulan][minggu][sesi][hari] = {
+                materi: materiName,
+                instruktur: instrukturName,
+                ruang: ruangName,
+                isFullDay: isFullDay,
+                isLibur: isLibur
+            };
+            saveData(); closeEditModal(); renderScheduleTable();
+        }
+
+        // Jalankan inisialisasi aplikasi
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
