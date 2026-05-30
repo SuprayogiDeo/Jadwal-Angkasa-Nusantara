@@ -404,8 +404,8 @@
                 await firebase.signInAnonymously(firebase.auth);
                 if (!firebase.auth.currentUser) return;
 
-                // MENGUBAH PATH KE JADWAL v5 UNTUK MENDAPATKAN KERTAS KERJA 100% KOSONG
-                const docRef = firebase.doc(firebase.db, 'artifacts', firebase.appId, 'public', 'data', 'jadwal_db_v5');
+                // MENGGUNAKAN PATH STANDAR FIREBASE YANG BENAR (GENAP: KOLEKSI -> DOKUMEN)
+                const docRef = firebase.doc(firebase.db, 'jadwal_angkasa', 'data_utama');
                 const docSnap = await firebase.getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -456,8 +456,8 @@
                 }
                 if (!firebase.auth.currentUser) return;
 
-                // SIMPAN KE JADWAL v5
-                const docRef = firebase.doc(firebase.db, 'artifacts', firebase.appId, 'public', 'data', 'jadwal_db_v5');
+                // SIMPAN MENGGUNAKAN PATH STANDAR FIREBASE YANG BENAR
+                const docRef = firebase.doc(firebase.db, 'jadwal_angkasa', 'data_utama');
                 await firebase.setDoc(docRef, packageData);
                 console.log("Data berhasil disimpan ke Firebase!");
             } catch (error) {
