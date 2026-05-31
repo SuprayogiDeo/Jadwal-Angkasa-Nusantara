@@ -20,12 +20,9 @@
         };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app); const db = getFirestore(app);
-        window.firebaseDb=db; window.firebaseAuth=auth; window.fbDoc=doc;
-        window.fbSetDoc=setDoc; window.fbGetDoc=getDoc; window.fbOnSnapshot=onSnapshot;
-        window.fbCollection=collection; window.fbGetDocs=getDocs; window.fbSignInAnonymously=signInAnonymously;
+        window.fb = { db, auth, signInAnonymously, doc, setDoc, getDoc, onSnapshot, collection, getDocs };
     </script>
     <style>
-        /* ========== STYLE UTAMA ========== */
         .jadwal-table { border-collapse: collapse; width: 100%; }
         .jadwal-table th, .jadwal-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px; }
         .jadwal-table th { background-color: #ffff00; font-weight: bold; }
@@ -40,7 +37,6 @@
         @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.2)} }
         .writing-vertical { writing-mode: vertical-rl; text-orientation: mixed; margin: auto; padding: 10px 0; font-size: 1.1rem; letter-spacing: 1px; }
 
-        /* CHATBOT */
         #chatbotContainer { transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.2s; }
         #chatbotContainer.scale-0 { transform: scale(0); opacity: 0; pointer-events: none; }
         #chatbotContainer.scale-100 { transform: scale(1); opacity: 1; pointer-events: auto; }
@@ -54,80 +50,24 @@
         .chip { display:inline-block; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:20px; padding:4px 11px; font-size:0.75rem; cursor:pointer; margin:2px; transition:background .15s; }
         .chip:hover { background:#bae6fd; }
 
-        /* ========== PRINT STYLE - SETIAP MINGGU 1 HALAMAN ========== */
         @media print {
             @page { size: A4 landscape; margin: 10mm; }
-            .no-print, button, select, .max-w-7xl, #editModal, #printModal, #chatbotContainer, #chatbotBtn, .conflict-dot {
-                display: none !important;
-            }
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            body {
-                background-color: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                font-size: 11px !important;
-            }
-            #scheduleModal {
-                position: static !important;
-                background: white !important;
-                display: block !important;
-                width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
-            }
-            .week-container {
-                page-break-after: always !important;
-                page-break-inside: avoid !important;
-                margin-bottom: 0 !important;
-                width: 100%;
-                display: block;
-            }
-            .week-container:last-child {
-                page-break-after: auto !important;
-            }
-            .jadwal-table {
-                width: 100% !important;
-                border-collapse: collapse;
-            }
-            .jadwal-table th, .jadwal-table td {
-                border: 1px solid #000 !important;
-                padding: 4px !important;
-            }
-            .cell-content {
-                display: block !important;
-                height: auto !important;
-            }
-            .jadwal-table td.hari-cell {
-                height: auto !important;
-                min-height: 70px;
-            }
-            .cell-ruang {
-                margin-top: 4px !important;
-                display: block !important;
-            }
-            .print-only-title {
-                display: block !important;
-                text-align: center;
-                margin-bottom: 15px;
-                font-size: 1.3rem !important;
-                font-weight: bold;
-                page-break-after: avoid;
-            }
-            /* Pastikan tabel tidak terpotong */
-            .jadwal-table {
-                page-break-inside: avoid;
-            }
-            tr, th, td {
-                page-break-inside: avoid;
-            }
+            .no-print, button, select, .max-w-7xl, #editModal, #printModal, #chatbotContainer, #chatbotBtn, .conflict-dot { display: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background: white; padding: 0; margin: 0; font-size: 11px; }
+            #scheduleModal { position: static !important; background: white; display: block; width: 100%; height: auto; overflow: visible; }
+            .week-container { page-break-after: always; page-break-inside: avoid; margin: 0; width: 100%; display: block; }
+            .week-container:last-child { page-break-after: auto; }
+            .jadwal-table { width: 100%; border-collapse: collapse; }
+            .jadwal-table th, .jadwal-table td { border: 1px solid #000; padding: 4px; }
+            .cell-content { display: block; height: auto; }
+            .jadwal-table td.hari-cell { height: auto; min-height: 70px; }
+            .cell-ruang { margin-top: 4px; display: block; }
+            .print-only-title { display: block; text-align: center; margin-bottom: 15px; font-size: 1.3rem; font-weight: bold; page-break-after: avoid; }
+            .jadwal-table { page-break-inside: avoid; }
+            tr, th, td { page-break-inside: avoid; }
         }
-
-        @media screen {
-            .print-only-title { display: none !important; }
-        }
+        @media screen { .print-only-title { display: none !important; } }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans p-6">
@@ -147,8 +87,36 @@
     <div id="prodiContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 </div>
 
-<!-- MODAL RESOLUSI KONFLIK -->
+<!-- MODAL JADWAL (ditempatkan lebih awal agar terbaca) -->
+<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-40 flex justify-center items-center">
+    <div class="bg-white w-full h-full md:w-11/12 md:h-5/6 md:rounded-xl shadow-2xl flex flex-col relative">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50 md:rounded-t-xl no-print">
+            <h2 id="scheduleTitle" class="text-2xl font-bold uppercase">JADWAL</h2>
+            <div class="flex items-center gap-2">
+                <select id="monthSelector" onchange="renderScheduleTable()" class="border p-2 rounded text-lg font-bold bg-white">
+                    <option value="Juli 2026">Juli 2026</option>
+                    <option value="Agustus 2026">Agustus 2026</option>
+                    <option value="September 2026">September 2026</option>
+                    <option value="Oktober 2026">Oktober 2026</option>
+                    <option value="November 2026">November 2026</option>
+                </select>
+                <div class="flex gap-1 ml-2 border-l pl-3 border-gray-300">
+                    <button onclick="addWeek()" class="bg-blue-600 text-white w-10 h-10 rounded shadow hover:bg-blue-700 flex justify-center items-center"><i class="fas fa-plus"></i></button>
+                    <button onclick="removeWeek()" class="bg-yellow-500 text-white w-10 h-10 rounded shadow hover:bg-yellow-600 flex justify-center items-center"><i class="fas fa-minus"></i></button>
+                </div>
+                <button onclick="openPrintModal()" class="bg-green-600 text-white px-4 py-2 h-10 rounded shadow hover:bg-green-700 ml-2 flex items-center gap-2"><i class="fas fa-file-pdf"></i> Cetak PDF</button>
+                <button onclick="closeSchedule()" class="bg-red-500 text-white px-4 py-2 h-10 rounded shadow hover:bg-red-600 ml-2"><i class="fas fa-times mr-2"></i>Tutup</button>
+            </div>
+        </div>
+        <div class="p-4 overflow-auto flex-1 bg-white" id="tableWrapper"></div>
+    </div>
+</div>
+
+<!-- MODAL LAINNYA (skeleton) -->
 <div id="aiResolutionModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[60] flex justify-center items-center no-print">...</div>
+<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[55] flex justify-center items-center no-print">...</div>
+<div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
 
 <!-- CHATBOT BUTTON & WINDOW -->
 <div id="chatbotBtn" onclick="toggleChat()" class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-2xl flex justify-center items-center cursor-pointer hover:bg-blue-700 transition-all z-50 text-white text-xl hover:scale-110 active:scale-95">
@@ -172,15 +140,9 @@
     </div>
 </div>
 
-<!-- MODAL PENGATURAN (singkat, isi lengkap seperti sebelumnya) -->
-<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
-<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-40 flex justify-center items-center">...</div>
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[55] flex justify-center items-center no-print">...</div>
-<div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
-
 <script>
 // ============================================================
-// DATA & KONSTANTA (LENGKAP SEPERTI KODE SEBELUMNYA)
+// DATA & KONSTANTA
 // ============================================================
 const MATERI_BEBAS_BENTROK = ['SENAM PAGI','KESAMAPTAAN','OUTBOUND','Administration','Perkenalan Staff','Beauty & Handsome Class','PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII'];
 
@@ -218,32 +180,35 @@ const bulanConfig = {
 };
 const daftarBulan = Object.keys(bulanConfig);
 
-let scheduleData={}, allProdiSchedules={}, currentProdi=null, currentEditCell=null, pendingSaveData=null, unsubAllProdi={};
+let scheduleData = {};
+let allProdiSchedules = {};
+let currentProdi = null;
+let currentEditCell = null;
+let pendingSaveData = null;
+let unsubAllProdi = {};
 
 // ============================================================
-// FUNGSI HELPER YANG TELAH ADA (DISEWAKAN, TIDAK DIUBAH)
+// HELPER & FIREBASE
 // ============================================================
 function getActiveRoom(r,b){const i=daftarBulan.indexOf(b);if(i%2!==0){if(r==='Ruang Airbus')return'Ruang Boing';if(r==='Ruang Boing')return'Ruang Airbus';}return r;}
 function getDefaultWeeksForMonth(b){return bulanConfig[b]?.weeks||['I','II','III','IV'];}
 function getMondayForWeek(bulan,minggu){const c=bulanConfig[bulan];if(!c)return new Date('2026-07-06');const wi=c.weeks.indexOf(minggu);if(wi!==-1)return new Date(c.mondayDates[wi]);const li=c.weeks.length-1;const m=new Date(c.mondayDates[li]);m.setDate(m.getDate()+(listMingguRomawi.indexOf(minggu)-listMingguRomawi.indexOf(c.weeks[li]))*7);return m;}
-function getEffRuang(cell,pid,bulan){if(!cell?.materi)return'';const r=cell.ruang||'';if(r==='-')return'';if(r===''){const p=dataProdi.find(x=>x.id===pid);return p?getActiveRoom(p.defaultRoom,bulan):'';}return r;}
 function countMateriUsage(name){let c=0;for(const p in allProdiSchedules){const sd=allProdiSchedules[p];for(const b in sd)for(const m in sd[b])for(const s in sd[b][m])for(const h in sd[b][m][s])if(sd[b][m][s][h]?.materi===name)c++;}return c;}
 
-// Firebase (sama seperti sebelumnya)
-function waitFirebase(){return new Promise(r=>{const t=setInterval(()=>{if(window.firebaseDb&&window.firebaseAuth){clearInterval(t);r({db:window.firebaseDb,auth:window.firebaseAuth});}},80);});}
+async function waitFirebase(){while(!window.fb)await new Promise(r=>setTimeout(r,50));return window.fb;}
 function toggleLoading(show,msg='Sinkronisasi...'){if(show&&!document.getElementById('loadingOverlay')){document.body.insertAdjacentHTML('beforeend',`<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex flex-col justify-center items-center text-white"><i class="fas fa-spinner fa-spin text-5xl mb-4"></i><h2 class="text-xl font-bold">${msg}</h2></div>`);}else if(!show)document.getElementById('loadingOverlay')?.remove();}
 function setSyncStatus(ok){const el=document.getElementById('syncStatus');if(el)el.innerHTML=ok?'<i class="fas fa-cloud text-green-600"></i> <span class="text-green-600">Firebase Sync Aktif</span>':'<i class="fas fa-exclamation-triangle text-red-500"></i> <span class="text-red-500">Offline</span>';}
-async function initApp(){const{db,auth}=await waitFirebase();try{await window.fbSignInAnonymously(auth);}catch(e){}await fetchMaster(db);window.fbOnSnapshot(window.fbDoc(db,'jadwal_angkasa','master'),snap=>{if(!snap.exists())return;const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi)dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10})):d.materi;renderDashboard();updateDropdowns();});await fetchAllProdiSchedules(db);subscribeAllProdi(db);setSyncStatus(true);renderDashboard();updateDropdowns();document.getElementById('monthSelector').innerHTML=daftarBulan.map(b=>`<option value="${b}">${b}</option>`).join('');}
-async function fetchMaster(db){toggleLoading(true,'Memuat Data Master...');try{const snap=await window.fbGetDoc(window.fbDoc(db,'jadwal_angkasa','master'));if(snap.exists()){const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi)dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10})):d.materi;}else await saveMaster(db);}catch(e){setSyncStatus(false);}finally{toggleLoading(false);}}
-async function saveMaster(dbArg){const{db}=dbArg?{db:dbArg}:await waitFirebase();try{await window.fbSetDoc(window.fbDoc(db,'jadwal_angkasa','master'),{prodi:dataProdi,room:dataRoom,materi:dataMateri,updatedAt:new Date().toISOString()});}catch(e){alert('Gagal simpan master:\n'+e.message);}}
-async function fetchProdiSchedule(pid){const{db}=await waitFirebase();toggleLoading(true,'Memuat Jadwal...');try{const snap=await window.fbGetDoc(window.fbDoc(db,'jadwal_prodi',pid));scheduleData=snap.exists()?(snap.data().schedule||{}):{};allProdiSchedules[pid]=scheduleData;}catch(e){scheduleData={};}finally{toggleLoading(false);}}
-async function saveProdiSchedule(){if(!currentProdi)return;const{db}=await waitFirebase();try{await window.fbSetDoc(window.fbDoc(db,'jadwal_prodi',currentProdi.id),{schedule:scheduleData,updatedAt:new Date().toISOString()});allProdiSchedules[currentProdi.id]=scheduleData;renderDashboard();}catch(e){alert('Gagal menyimpan:\n'+e.message);}}
-async function fetchAllProdiSchedules(db){for(const p of dataProdi){try{const snap=await window.fbGetDoc(window.fbDoc(db,'jadwal_prodi',p.id));allProdiSchedules[p.id]=snap.exists()?(snap.data().schedule||{}):{};}catch(e){allProdiSchedules[p.id]={};}}}
-function subscribeAllProdi(db){dataProdi.forEach(p=>{if(unsubAllProdi[p.id])unsubAllProdi[p.id]();unsubAllProdi[p.id]=window.fbOnSnapshot(window.fbDoc(db,'jadwal_prodi',p.id),snap=>{const inc=snap.exists()?(snap.data().schedule||{}):{};allProdiSchedules[p.id]=inc;if(currentProdi?.id===p.id&&JSON.stringify(inc)!==JSON.stringify(scheduleData)){scheduleData=inc;renderScheduleTable();}renderDashboard();});});}
+
+async function fetchMaster(){const fb=await waitFirebase();toggleLoading(true,'Memuat Data Master...');try{await fb.signInAnonymously(fb.auth);const snap=await fb.getDoc(fb.doc(fb.db,'jadwal_angkasa','master'));if(snap.exists()){const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi)dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10})):d.materi;}else await saveMaster(fb);setSyncStatus(true);}catch(e){console.error(e);setSyncStatus(false);}finally{toggleLoading(false);renderDashboard();updateDropdowns();}}
+async function saveMaster(fb){try{await fb.setDoc(fb.doc(fb.db,'jadwal_angkasa','master'),{prodi:dataProdi,room:dataRoom,materi:dataMateri,updatedAt:new Date().toISOString()});}catch(e){alert('Gagal simpan master: '+e.message);}}
+async function fetchProdiSchedule(pid){const fb=await waitFirebase();try{const snap=await fb.getDoc(fb.doc(fb.db,'jadwal_prodi',pid));scheduleData=snap.exists()?snap.data().schedule||{}:{};allProdiSchedules[pid]=scheduleData;}catch(e){scheduleData={};}}
+async function saveProdiSchedule(){if(!currentProdi)return;const fb=await waitFirebase();try{await fb.setDoc(fb.doc(fb.db,'jadwal_prodi',currentProdi.id),{schedule:scheduleData,updatedAt:new Date().toISOString()});allProdiSchedules[currentProdi.id]=scheduleData;renderDashboard();}catch(e){alert('Gagal simpan jadwal: '+e.message);}}
+async function fetchAllProdiSchedules(){const fb=await waitFirebase();for(const p of dataProdi){try{const snap=await fb.getDoc(fb.doc(fb.db,'jadwal_prodi',p.id));allProdiSchedules[p.id]=snap.exists()?snap.data().schedule||{}:{};}catch(e){allProdiSchedules[p.id]={};}}}
+function subscribeAllProdi(){waitFirebase().then(fb=>{dataProdi.forEach(p=>{if(unsubAllProdi[p.id])unsubAllProdi[p.id]();unsubAllProdi[p.id]=fb.onSnapshot(fb.doc(fb.db,'jadwal_prodi',p.id),snap=>{const inc=snap.exists()?snap.data().schedule||{}:{};allProdiSchedules[p.id]=inc;if(currentProdi?.id===p.id&&JSON.stringify(inc)!==JSON.stringify(scheduleData)){scheduleData=inc;renderScheduleTable();}renderDashboard();});});});}
 function saveData(){saveProdiSchedule();}
 
 // ============================================================
-// UI JADWAL (FUNGSI RENDER, EDIT, DLL - TIDAK DIUBAH)
+// UI JADWAL
 // ============================================================
 function renderDashboard(){const con=document.getElementById('prodiContainer');con.innerHTML='';dataProdi.forEach(p=>{const hasCon=daftarBulan.some(b=>prodiHasConflictInBulan(p.id,b));const btn=document.createElement('button');btn.className="relative bg-white p-6 rounded-xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition text-left flex flex-col justify-between";btn.onclick=()=>openSchedule(p);btn.innerHTML=`${hasCon?'<span class="conflict-dot" title="Ada bentrok!"></span>':''}<div class="text-2xl font-bold text-gray-800 mb-2">${p.name}</div><div class="text-sm text-gray-500 flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-500"></i> ${p.defaultRoom}</div>${hasCon?'<div class="text-xs text-red-500 font-bold mt-2 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> Ada bentrok jadwal</div>':''}`;con.appendChild(btn);});}
 function updateDropdowns(){const rs=document.getElementById('newProdiRoom');if(rs)rs.innerHTML=dataRoom.map(r=>`<option value="${r}">${r}</option>`).join('');const em=document.getElementById('editMateri');if(em){const c=em.value;em.innerHTML='<option value="">- Kosong -</option>'+dataMateri.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');if(c)em.value=c;}const er=document.getElementById('editRuang');if(er){const c=er.value;er.innerHTML='<option value="">- Default Ruang Prodi -</option><option value="-">- Tanpa Ruangan -</option>'+dataRoom.map(r=>`<option value="${r}">${r}</option>`).join('');if(c)er.value=c;}}
@@ -257,9 +222,9 @@ function addRoom(){const v=document.getElementById('newRoomName').value.trim();i
 function deleteRoom(i){if(confirm('Hapus ruang ini?')){dataRoom.splice(i,1);saveMaster();updateDropdowns();renderSettingsLists();}}
 function addMateri(){const v=document.getElementById('newMateriName').value.trim();if(!v)return;const q=parseInt(document.getElementById('newMateriQuota').value)||0;dataMateri.push({name:v,quota:q});document.getElementById('newMateriName').value='';document.getElementById('newMateriQuota').value='';saveMaster();updateDropdowns();renderSettingsLists();}
 function deleteMateri(i){if(confirm('Hapus materi ini?')){dataMateri.splice(i,1);saveMaster();updateDropdowns();renderSettingsLists();}}
-async function openSchedule(p){currentProdi=p;document.getElementById('scheduleModal').classList.remove('hidden');await fetchProdiSchedule(p.id);renderScheduleTable();}
+function openSchedule(p){currentProdi=p;fetchProdiSchedule(p.id).then(()=>{document.getElementById('scheduleModal').classList.remove('hidden');renderScheduleTable();}).catch(e=>console.error(e));}
 function closeSchedule(){document.getElementById('scheduleModal').classList.add('hidden');currentProdi=null;scheduleData={};}
-function buildTableContent(prodi,bulan,wrapper){const defRoom=getActiveRoom(prodi.defaultRoom,bulan);if(!scheduleData[bulan])scheduleData[bulan]={};let weeks=Object.keys(scheduleData[bulan]);weeks.sort((a,b)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(b));if(!weeks.length){getDefaultWeeksForMonth(bulan).forEach(w=>{scheduleData[bulan][w]={};});weeks=[...getDefaultWeeksForMonth(bulan)];}weeks.forEach(minggu=>{if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};const wd=document.createElement('div');wd.className='week-container';const tbl=document.createElement('table');tbl.className='jadwal-table w-full text-sm';const tb=document.createElement('tbody');tbl.appendChild(tb);let skip={};daftarHari.forEach(h=>{skip[h]=0;});const mon=getMondayForWeek(bulan,minggu);const hdr=document.createElement('tr');hdr.innerHTML='<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>';const dates=[];daftarHari.forEach((h,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;dates.push(ds);hdr.innerHTML+=`<th>${h}<br><span class="text-xs font-normal">(${ds})</span></th>`;});tb.appendChild(hdr);strukturWaktu.forEach((w,si)=>{if(!scheduleData[bulan][minggu][w.sesi])scheduleData[bulan][minggu][w.sesi]={};const tr=document.createElement('tr');if(si===0){const tm=document.createElement('td');tm.rowSpan=strukturWaktu.length;tm.className='bg-white font-bold border';tm.innerText=minggu;tr.appendChild(tm);}tr.innerHTML+=`<td class="font-bold border">${w.sesi}</td><td class="font-bold border">${w.jam}</td>`;daftarHari.forEach((h,hi)=>{if(skip[h]>0){skip[h]--;return;}const td=document.createElement('td');const cell=scheduleData[bulan][minggu][w.sesi][h]||{materi:'',instruktur:'',ruang:''};const isAuto=cell.materi==='PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';const isFull=cell.isFullDay||isAuto;let isConflict=false;if(cell.materi&&!MATERI_BEBAS_BENTROK.includes(cell.materi)){for(const oid in allProdiSchedules){if(oid===prodi.id)continue;const os=allProdiSchedules[oid]?.[bulan]?.[minggu]?.[w.sesi]?.[h];if(os?.materi===cell.materi)isConflict=true;}}let cls='hari-cell border';if(cell.isLibur)cls+=' bg-red-400 text-white';if(isConflict)cls+=' cell-conflict';td.className=cls;if(isFull){const sp=strukturWaktu.length-si;td.rowSpan=sp;skip[h]=sp-1;}let html=`<div class="cell-content ${isFull?'justify-center items-center':''}">`;if(cell.materi){html+=`<div class="cell-materi ${isFull&&isAuto?'writing-vertical':''}">${cell.materi}</div>`;if(isConflict)html+=`<div style="font-size:.65rem;color:#ea580c;padding:1px 2px;">⚠ Bentrok</div>`;if(cell.instruktur)html+=`<div class="cell-instruktur">${cell.instruktur}</div>`;let ruang=cell.ruang&&cell.ruang!=='-'?cell.ruang:(cell.ruang==='-'?'':defRoom);if(ruang)html+=`<div class="cell-ruang ${cell.isLibur?'bg-red-600':'bg-blue-500'}">${ruang}</div>`;}html+='</div>';td.innerHTML=html;td.onclick=()=>openEditModal(bulan,minggu,w.sesi,h,cell,dates[hi]);tr.appendChild(td);});tb.appendChild(tr);});wd.appendChild(tbl);wrapper.appendChild(wd);});}
+function buildTableContent(prodi,bulan,wrapper){const defRoom=getActiveRoom(prodi.defaultRoom,bulan);if(!scheduleData[bulan])scheduleData[bulan]={};let weeks=Object.keys(scheduleData[bulan]);weeks.sort((a,b)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(b));if(!weeks.length){getDefaultWeeksForMonth(bulan).forEach(w=>{scheduleData[bulan][w]={};});weeks=[...getDefaultWeeksForMonth(bulan)];}weeks.forEach(minggu=>{if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};const wd=document.createElement('div');wd.className='week-container';const tbl=document.createElement('table');tbl.className='jadwal-table w-full text-sm';const tb=document.createElement('tbody');tbl.appendChild(tb);let skip={};daftarHari.forEach(h=>{skip[h]=0;});const mon=getMondayForWeek(bulan,minggu);const hdr=document.createElement('tr');hdr.innerHTML='<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>';const dates=[];daftarHari.forEach((h,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;dates.push(ds);hdr.innerHTML+=`<th>${h}<br><span class="text-xs font-normal">(${ds})</span></th>`;});tb.appendChild(hdr);strukturWaktu.forEach((w,si)=>{if(!scheduleData[bulan][minggu][w.sesi])scheduleData[bulan][minggu][w.sesi]={};const tr=document.createElement('tr');if(si===0){const tm=document.createElement('td');tm.rowSpan=strukturWaktu.length;tm.className='bg-white font-bold border';tm.innerText=minggu;tr.appendChild(tm);}tr.innerHTML+=`<td class="font-bold border">${w.sesi}</td><td class="font-bold border">${w.jam}<td>`;daftarHari.forEach((h,hi)=>{if(skip[h]>0){skip[h]--;return;}const td=document.createElement('td');const cell=scheduleData[bulan][minggu][w.sesi][h]||{materi:'',instruktur:'',ruang:''};const isAuto=cell.materi==='PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';const isFull=cell.isFullDay||isAuto;let isConflict=false;if(cell.materi&&!MATERI_BEBAS_BENTROK.includes(cell.materi)){for(const oid in allProdiSchedules){if(oid===prodi.id)continue;const os=allProdiSchedules[oid]?.[bulan]?.[minggu]?.[w.sesi]?.[h];if(os?.materi===cell.materi)isConflict=true;}}let cls='hari-cell border';if(cell.isLibur)cls+=' bg-red-400 text-white';if(isConflict)cls+=' cell-conflict';td.className=cls;if(isFull){const sp=strukturWaktu.length-si;td.rowSpan=sp;skip[h]=sp-1;}let html=`<div class="cell-content ${isFull?'justify-center items-center':''}">`;if(cell.materi){html+=`<div class="cell-materi ${isFull&&isAuto?'writing-vertical':''}">${cell.materi}</div>`;if(isConflict)html+=`<div style="font-size:.65rem;color:#ea580c;padding:1px 2px;">⚠ Bentrok</div>`;if(cell.instruktur)html+=`<div class="cell-instruktur">${cell.instruktur}</div>`;let ruang=cell.ruang&&cell.ruang!=='-'?cell.ruang:(cell.ruang==='-'?'':defRoom);if(ruang)html+=`<div class="cell-ruang ${cell.isLibur?'bg-red-600':'bg-blue-500'}">${ruang}</div>`;}html+='</div>';td.innerHTML=html;td.onclick=()=>openEditModal(bulan,minggu,w.sesi,h,cell,dates[hi]);tr.appendChild(td);});tb.appendChild(tr);});wd.appendChild(tbl);wrapper.appendChild(wd);});}
 function renderScheduleTable(){const wr=document.getElementById('tableWrapper');wr.innerHTML='';if(!currentProdi)return;const bulan=document.getElementById('monthSelector').value;document.getElementById('scheduleTitle').innerText=`JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}`;buildTableContent(currentProdi,bulan,wr);}
 function addWeek(){const b=document.getElementById('monthSelector').value;if(!scheduleData[b])scheduleData[b]={};const wk=Object.keys(scheduleData[b]);if(wk.length>=listMingguRomawi.length)return;let mx=-1;wk.forEach(w=>{const i=listMingguRomawi.indexOf(w);if(i>mx)mx=i;});const nx=listMingguRomawi[mx+1];scheduleData[b][nx]={};saveData();renderScheduleTable();}
 function removeWeek(){const b=document.getElementById('monthSelector').value;const wk=Object.keys(scheduleData[b]||{});if(wk.length<=1)return;wk.sort((a,c)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(c));const last=wk[wk.length-1];if(confirm(`Hapus Minggu Ke-${last}?`)){delete scheduleData[b][last];saveData();renderScheduleTable();}}
@@ -275,138 +240,48 @@ function openPrintModal(){const cur=document.getElementById('monthSelector').val
 function closePrintModal(){document.getElementById('printModal').classList.add('hidden');}
 let allSelected=false;
 function toggleAllPrintMonths(){allSelected=!allSelected;document.querySelectorAll('.print-month-cb').forEach(c=>c.checked=allSelected);}
-function executePrint(){const months=Array.from(document.querySelectorAll('.print-month-cb:checked')).map(c=>c.value);if(!months.length){alert('Pilih minimal 1 bulan!');return;}closePrintModal();const wrapper = document.getElementById('tableWrapper');wrapper.innerHTML = '';months.forEach(bulan=>{const container = document.createElement('div');container.className = 'print-container';const title = `<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}</h2>`;container.innerHTML = title;buildTableContent(currentProdi, bulan, container);wrapper.appendChild(container);});document.getElementById('scheduleTitle').classList.add('no-print');setTimeout(()=>{window.print();setTimeout(()=>{document.getElementById('scheduleTitle').classList.remove('no-print');renderScheduleTable();},500);},300);}
+function executePrint(){const months=Array.from(document.querySelectorAll('.print-month-cb:checked')).map(c=>c.value);if(!months.length){alert('Pilih minimal 1 bulan!');return;}closePrintModal();const wrapper=document.getElementById('tableWrapper');wrapper.innerHTML='';months.forEach(bulan=>{const container=document.createElement('div');container.className='print-container';const title=`<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}</h2>`;container.innerHTML=title;buildTableContent(currentProdi,bulan,container);wrapper.appendChild(container);});document.getElementById('scheduleTitle').classList.add('no-print');setTimeout(()=>{window.print();setTimeout(()=>{document.getElementById('scheduleTitle').classList.remove('no-print');renderScheduleTable();},500);},300);}
 
 // ============================================================
-// CHATBOT FUNGSI DENGAN JAARVIS DEO & RANDOM EMOJI
+// CHATBOT FUNGSI (JAARVIS DEO)
 // ============================================================
-function randomEmoji() {
-    const emojis = ['🤖', '😄', '🎉', '✨', '🌟', '💬', '🤗', '🙌', '💡', '🔥', '⭐', '🍕', '🎈', '😎', '👻', '🐱', '🦄', '🚀'];
-    return emojis[Math.floor(Math.random() * emojis.length)];
-}
-function updateAvatarEmoji() {
-    const avatar = document.getElementById('avatarEmoji');
-    if (avatar) avatar.innerText = randomEmoji();
-}
-// Sapaan dengan emoji random
-function getRandomGreeting() {
-    const greetings = [
-        `Halo! Saya Jaarvis Deo ${randomEmoji()} asisten pribadi kamoeh. Ada yang bisa dibantu?`,
-        `Hey! Jaarvis Deo siap membantu ${randomEmoji()} Tanyakan soal jadwal yuk!`,
-        `${randomEmoji()} Hallo! Saya Jaarvis Deo. Kamu butuh info jadwal?`,
-        `Jaarvis Deo di sini ${randomEmoji()} Silakan pilih pertanyaan di bawah ya!`
-    ];
-    return greetings[Math.floor(Math.random() * greetings.length)];
-}
-// Normalisasi teks
-function normalize(txt) {
-    let s = txt.toLowerCase().trim().replace(/[?!.,;:'"]/g,'').replace(/\s+/g,' ');
-    s = s.replace(/\bgs(\s?)1\b/,'gs 1').replace(/\bgs(\s?)2\b/,'gs 2').replace(/\bgs(\s?)3\b/,'gs 3')
-         .replace(/\bgs(\s?)4\b/,'gs 4').replace(/\bgs(\s?)5\b/,'gs 5')
-         .replace(/\bfa(\s?)1\b/,'fa 1').replace(/\bfa(\s?)2\b/,'fa 2').replace(/\bfa(\s?)3\b/,'fa 3');
-    return s;
-}
-function extractProdiList(low) {
-    const rangeMatch = low.match(/(gs\s?\d|fa\s?\d)\s*[-–]\s*(gs\s?\d|fa\s?\d)/i);
-    if (rangeMatch) {
-        let start = rangeMatch[1].replace(/\s/g,'').toUpperCase();
-        let end   = rangeMatch[2].replace(/\s/g,'').toUpperCase();
-        const allIds = dataProdi.map(p => p.id.toUpperCase()).sort();
-        const startIdx = allIds.indexOf(start);
-        const endIdx = allIds.indexOf(end);
-        if (startIdx !== -1 && endIdx !== -1 && startIdx <= endIdx) {
-            const selectedIds = allIds.slice(startIdx, endIdx+1);
-            return dataProdi.filter(p => selectedIds.includes(p.id.toUpperCase()));
-        }
-    }
-    if (low.includes('semua prodi') || low.includes('semua kelas') || low.includes('all')) return dataProdi.slice();
-    const single = dataProdi.find(p => low.includes(p.name.toLowerCase()) || low.includes(p.id.toLowerCase()));
-    return single ? [single] : [];
-}
+function randomEmoji(){const e=['🤖','😄','🎉','✨','🌟','💬','🤗','🙌','💡','🔥','⭐','🍕','🎈','😎','👻','🐱','🦄','🚀'];return e[Math.floor(Math.random()*e.length)];}
+function updateAvatarEmoji(){const a=document.getElementById('avatarEmoji');if(a)a.innerText=randomEmoji();}
+function getRandomGreeting(){const g=[`Halo! Saya Jaarvis Deo ${randomEmoji()} asisten pribadi kamoeh. Ada yang bisa dibantu?`,`Hey! Jaarvis Deo siap membantu ${randomEmoji()} Tanyakan soal jadwal yuk!`,`${randomEmoji()} Hallo! Saya Jaarvis Deo. Kamu butuh info jadwal?`,`Jaarvis Deo di sini ${randomEmoji()} Silakan pilih pertanyaan di bawah ya!`];return g[Math.floor(Math.random()*g.length)];}
+function normalize(txt){let s=txt.toLowerCase().trim().replace(/[?!.,;:'"]/g,'').replace(/\s+/g,' ');s=s.replace(/\bgs(\s?)1\b/,'gs 1').replace(/\bgs(\s?)2\b/,'gs 2').replace(/\bgs(\s?)3\b/,'gs 3').replace(/\bgs(\s?)4\b/,'gs 4').replace(/\bgs(\s?)5\b/,'gs 5').replace(/\bfa(\s?)1\b/,'fa 1').replace(/\bfa(\s?)2\b/,'fa 2').replace(/\bfa(\s?)3\b/,'fa 3');return s;}
+function extractProdiList(low){const rm=low.match(/(gs\s?\d|fa\s?\d)\s*[-–]\s*(gs\s?\d|fa\s?\d)/i);if(rm){let s=rm[1].replace(/\s/g,'').toUpperCase(),e=rm[2].replace(/\s/g,'').toUpperCase();const ids=dataProdi.map(p=>p.id.toUpperCase()).sort();let si=ids.indexOf(s),ei=ids.indexOf(e);if(si!==-1&&ei!==-1&&si<=ei){let sel=ids.slice(si,ei+1);return dataProdi.filter(p=>sel.includes(p.id.toUpperCase()));}}if(low.includes('semua prodi')||low.includes('semua kelas')||low.includes('all'))return dataProdi.slice();const single=dataProdi.find(p=>low.includes(p.name.toLowerCase())||low.includes(p.id.toLowerCase()));return single?[single]:[];}
 function extractHari(low){return daftarHari.find(h=>low.includes(h.toLowerCase()));}
 function extractBulan(low){return daftarBulan.find(b=>low.includes(b.toLowerCase().split(' ')[0]));}
 function extractSesi(low){const m=low.match(/sesi\s*([1-7]|i{1,3}v?|vi{0,3}|iv|v)/i);if(!m)return null;const map={'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII'};return map[m[1].toLowerCase()]||m[1].toUpperCase();}
-function extractMateriName(low){const match=low.match(/(?:materi|pelajaran)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return match?match[1].trim():null;}
-function extractInstrukturName(low){const match=low.match(/(?:instruktur|pengajar|guru|diajar oleh)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return match?match[1].trim():null;}
-function extractRuangName(low){const match=low.match(/(?:ruang|kelas|ruangan)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return match?match[1].trim():null;}
-
-function getAllJadwalFlat(prodiId){const sd=allProdiSchedules[prodiId]||{};const rows=[];for(const bulan in sd) for(const minggu in sd[bulan]){const mon=getMondayForWeek(bulan,minggu);for(const sesi in sd[bulan][minggu]) for(const hari in sd[bulan][minggu][sesi]){const cell=sd[bulan][minggu][sesi][hari];if(!cell?.materi)continue;const hi=daftarHari.indexOf(hari);const d=new Date(mon);d.setDate(d.getDate()+hi);const tgl=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;const sesiObj=strukturWaktu.find(w=>w.sesi===sesi);rows.push({bulan,minggu,sesi,hari,materi:cell.materi,instruktur:cell.instruktur||'',ruang:cell.ruang||'',isLibur:cell.isLibur,prodi:prodiId,tgl,jam:sesiObj?.jam||''});}}rows.sort((a,b)=>{const bi=daftarBulan.indexOf(a.bulan)-daftarBulan.indexOf(b.bulan);if(bi!==0)return bi;const mi=listMingguRomawi.indexOf(a.minggu)-listMingguRomawi.indexOf(b.minggu);if(mi!==0)return mi;return strukturWaktu.findIndex(w=>w.sesi===a.sesi)-strukturWaktu.findIndex(w=>w.sesi===b.sesi);});return rows;}
-function getAllJadwalFlatForProdiList(prodiList){let all=[];for(let p of prodiList) all.push(...getAllJadwalFlat(p.id));return all;}
+function extractMateriName(low){const m=low.match(/(?:materi|pelajaran)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return m?m[1].trim():null;}
+function extractInstrukturName(low){const m=low.match(/(?:instruktur|pengajar|guru|diajar oleh)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return m?m[1].trim():null;}
+function extractRuangName(low){const m=low.match(/(?:ruang|kelas|ruangan)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return m?m[1].trim():null;}
+function getAllJadwalFlat(pid){const sd=allProdiSchedules[pid]||{};let rows=[];for(const b in sd)for(const m in sd[b]){const mon=getMondayForWeek(b,m);for(const s in sd[b][m])for(const h in sd[b][m][s]){const c=sd[b][m][s][h];if(!c?.materi)continue;const hi=daftarHari.indexOf(h);const d=new Date(mon);d.setDate(d.getDate()+hi);const tgl=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;const so=strukturWaktu.find(w=>w.sesi===s);rows.push({bulan:b,minggu:m,sesi:s,hari:h,materi:c.materi,instruktur:c.instruktur||'',ruang:c.ruang||'',isLibur:c.isLibur,prodi:pid,tgl,jam:so?.jam||''});}}rows.sort((a,b)=>{const bi=daftarBulan.indexOf(a.bulan)-daftarBulan.indexOf(b.bulan);if(bi!==0)return bi;const mi=listMingguRomawi.indexOf(a.minggu)-listMingguRomawi.indexOf(b.minggu);if(mi!==0)return mi;return strukturWaktu.findIndex(w=>w.sesi===a.sesi)-strukturWaktu.findIndex(w=>w.sesi===b.sesi);});return rows;}
+function getAllJadwalFlatForProdiList(pl){let all=[];for(let p of pl)all.push(...getAllJadwalFlat(p.id));return all;}
 function formatRow(r,prodi,bulan){const ruang=r.ruang&&r.ruang!=='-'?r.ruang:getActiveRoom(prodi?.defaultRoom||'',bulan||r.bulan);let line=`<b>${r.hari}</b> (${r.tgl}) · Sesi ${r.sesi} <span style="color:#6b7280;font-size:.8rem">${r.jam}</span><br>`;line+=`&nbsp;&nbsp;📚 <b>${r.materi}</b>`;if(r.instruktur)line+=` &nbsp;👤 ${r.instruktur}`;if(ruang)line+=` &nbsp;🚪 ${ruang}`;if(r.isLibur)line+=` &nbsp;<span style="color:#ef4444;font-weight:bold">🔴 LIBUR</span>`;return line;}
 function chipsHTML(list){return '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">'+list.map(c=>`<span class="chip" onclick="quickReply('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('')+'</div>';}
 function quickReply(txt){document.getElementById('chatInput').value=txt;sendChatMessage();}
-
-// Intent dan jawaban
-function answerKonflik(){
-    const found=[]; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); for(const r of rows){if(MATERI_BEBAS_BENTROK.includes(r.materi))continue; for(const p2 of dataProdi){if(p2.id===p.id)continue; const rows2=getAllJadwalFlat(p2.id); const match=rows2.find(r2=>r2.bulan===r.bulan&&r2.minggu===r.minggu&&r2.sesi===r.sesi&&r2.hari===r.hari&&r2.materi===r.materi); if(match) found.push(`⚠️ ${p.name} & ${p2.name}: "${r.materi}" pada ${r.hari} (${r.tgl}) Sesi ${r.sesi}`);}}} if(!found.length) return "✅ Tidak ada konflik jadwal."; return `⚠️ Ditemukan ${found.length} konflik:<br><br>`+found.slice(0,10).join('<br>');}
-function answerKuota(){
-    const list=dataMateri.map(m=>{const used=countMateriUsage(m.name);return{name:m.name,quota:m.quota,used,sisa:m.quota>0?m.quota-used:Infinity};}); const aman=list.filter(m=>m.sisa>0).sort((a,b)=>(b.sisa===Infinity?99999:b.sisa)-(a.sisa===Infinity?99999:a.sisa)); const habis=list.filter(m=>m.sisa!==Infinity&&m.sisa<=0); let out=`💡 Sisa Kuota Materi:<br>`; aman.slice(0,8).forEach(m=>{out+=`• ${m.name}: ${m.sisa===Infinity?'∞ tak terbatas':`${m.sisa} sisa (${m.used}/${m.quota})`}<br>`;}); if(habis.length) out+=`<br>🔴 Kuota habis: ${habis.map(m=>m.name).join(', ')}`; return out;}
-function answerRekapForProdiList(prodiList,bulan){let rows=getAllJadwalFlatForProdiList(prodiList);if(bulan) rows=rows.filter(r=>r.bulan===bulan);if(!rows.length) return "Tidak ada data jadwal."; const perProdi={}; rows.forEach(r=>{const pn=dataProdi.find(p=>p.id===r.prodi)?.name||r.prodi; perProdi[pn]=(perProdi[pn]||0)+1;}); const perMateri={}; rows.forEach(r=>{perMateri[r.materi]=(perMateri[r.materi]||0)+1;}); const topMateri=Object.entries(perMateri).sort((a,b)=>b[1]-a[1]).slice(0,5); let out=`📊 Rekap Jadwal${bulan?' '+bulan:''} (${prodiList.length} prodi):<br>Total sesi: ${rows.length}<br><br>Per prodi:<br>`+Object.entries(perProdi).map(([p,c])=>`• ${p}: ${c} sesi`).join('<br>'); if(topMateri.length) out+=`<br><br>🏆 Top materi: ${topMateri.map(([m,c])=>`${m} (${c}x)`).join(', ')}`; return out;}
-function answerInstruktur(instr){const map={}; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.instruktur){const key=r.instruktur.trim();if(!map[key])map[key]={name:key,count:0,prodis:new Set()};map[key].count++;map[key].prodis.add(p.name);}});} if(instr){const match=Object.values(map).find(i=>i.name.toLowerCase().includes(instr.toLowerCase())); if(match) return `👨‍🏫 ${match.name} mengajar ${match.count} sesi di: ${[...match.prodis].join(', ')}`; return `Instruktur "${instr}" tidak ditemukan.`;} if(Object.keys(map).length===0) return "Belum ada data instruktur."; return `👨‍🏫 Daftar Instruktur:<br>`+Object.values(map).sort((a,b)=>b.count-a.count).slice(0,10).map(i=>`• ${i.name} (${i.count} sesi)`).join('<br>');}
-function answerRuang(ruang,hari,sesi){if(ruang){let used=[]; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.ruang===ruang) used.push(`${p.name} ${r.hari} Sesi ${r.sesi}`);});} if(!used.length) return `Ruang ${ruang} tidak digunakan.`; return `🏢 Ruang ${ruang} dipakai:<br>`+used.slice(0,10).join('<br>');}else if(hari||sesi){let usedRooms=new Set(); for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if((!hari||r.hari===hari)&&(!sesi||r.sesi===sesi)) usedRooms.add(r.ruang);});} const free=dataRoom.filter(r=>!usedRooms.has(r)); return `🚪 Ruang kosong${hari?' hari '+hari:''}${sesi?' sesi '+sesi:''}: ${free.length?free.join(', '):'Tidak ada'}`;} return `🚪 Daftar Ruang: ${dataRoom.join(', ')}`;}
+function answerKonflik(){let f=[];for(const p of dataProdi){const r=getAllJadwalFlat(p.id);for(const rw of r){if(MATERI_BEBAS_BENTROK.includes(rw.materi))continue;for(const p2 of dataProdi){if(p2.id===p.id)continue;const r2=getAllJadwalFlat(p2.id);const m=r2.find(rx=>rx.bulan===rw.bulan&&rx.minggu===rw.minggu&&rx.sesi===rw.sesi&&rx.hari===rw.hari&&rx.materi===rw.materi);if(m)f.push(`⚠️ ${p.name} & ${p2.name}: "${rw.materi}" pada ${rw.hari} (${rw.tgl}) Sesi ${rw.sesi}`);}}}if(!f.length)return "✅ Tidak ada konflik jadwal.";return `⚠️ Ditemukan ${f.length} konflik:<br><br>`+f.slice(0,10).join('<br>');}
+function answerKuota(){const list=dataMateri.map(m=>{const u=countMateriUsage(m.name);return{name:m.name,quota:m.quota,used:u,sisa:m.quota>0?m.quota-u:Infinity};});const aman=list.filter(m=>m.sisa>0).sort((a,b)=>(b.sisa===Infinity?99999:b.sisa)-(a.sisa===Infinity?99999:a.sisa));const habis=list.filter(m=>m.sisa!==Infinity&&m.sisa<=0);let out=`💡 Sisa Kuota Materi:<br>`;aman.slice(0,8).forEach(m=>{out+=`• ${m.name}: ${m.sisa===Infinity?'∞ tak terbatas':`${m.sisa} sisa (${m.used}/${m.quota})`}<br>`;});if(habis.length)out+=`<br>🔴 Kuota habis: ${habis.map(m=>m.name).join(', ')}`;return out;}
+function answerRekapForProdiList(pl,bulan){let rows=getAllJadwalFlatForProdiList(pl);if(bulan)rows=rows.filter(r=>r.bulan===bulan);if(!rows.length)return "Tidak ada data jadwal.";const perProdi={};rows.forEach(r=>{const pn=dataProdi.find(p=>p.id===r.prodi)?.name||r.prodi;perProdi[pn]=(perProdi[pn]||0)+1;});const perMateri={};rows.forEach(r=>{perMateri[r.materi]=(perMateri[r.materi]||0)+1;});const topMateri=Object.entries(perMateri).sort((a,b)=>b[1]-a[1]).slice(0,5);let out=`📊 Rekap Jadwal${bulan?' '+bulan:''} (${pl.length} prodi):<br>Total sesi: ${rows.length}<br><br>Per prodi:<br>`+Object.entries(perProdi).map(([p,c])=>`• ${p}: ${c} sesi`).join('<br>');if(topMateri.length)out+=`<br><br>🏆 Top materi: ${topMateri.map(([m,c])=>`${m} (${c}x)`).join(', ')}`;return out;}
+function answerInstruktur(instr){const map={};for(const p of dataProdi){const rows=getAllJadwalFlat(p.id);rows.forEach(r=>{if(r.instruktur){const key=r.instruktur.trim();if(!map[key])map[key]={name:key,count:0,prodis:new Set()};map[key].count++;map[key].prodis.add(p.name);}});}if(instr){const match=Object.values(map).find(i=>i.name.toLowerCase().includes(instr.toLowerCase()));if(match)return `👨‍🏫 ${match.name} mengajar ${match.count} sesi di: ${[...match.prodis].join(', ')}`;return `Instruktur "${instr}" tidak ditemukan.`;}if(Object.keys(map).length===0)return "Belum ada data instruktur.";return `👨‍🏫 Daftar Instruktur:<br>`+Object.values(map).sort((a,b)=>b.count-a.count).slice(0,10).map(i=>`• ${i.name} (${i.count} sesi)`).join('<br>');}
+function answerRuang(ruang,hari,sesi){if(ruang){let used=[];for(const p of dataProdi){const rows=getAllJadwalFlat(p.id);rows.forEach(r=>{if(r.ruang===ruang)used.push(`${p.name} ${r.hari} Sesi ${r.sesi}`);});}if(!used.length)return `Ruang ${ruang} tidak digunakan.`;return `🏢 Ruang ${ruang} dipakai:<br>`+used.slice(0,10).join('<br>');}else if(hari||sesi){let usedRooms=new Set();for(const p of dataProdi){const rows=getAllJadwalFlat(p.id);rows.forEach(r=>{if((!hari||r.hari===hari)&&(!sesi||r.sesi===sesi))usedRooms.add(r.ruang);});}const free=dataRoom.filter(r=>!usedRooms.has(r));return `🚪 Ruang kosong${hari?' hari '+hari:''}${sesi?' sesi '+sesi:''}: ${free.length?free.join(', '):'Tidak ada'}`;}return `🚪 Daftar Ruang: ${dataRoom.join(', ')}`;}
 function answerDaftarProdi(){return `🏫 Daftar Prodi (${dataProdi.length}):<br>`+dataProdi.map(p=>`• ${p.name} (${p.defaultRoom})`).join('<br>');}
-function answerMateriByProdi(prodiList){if(!prodiList.length) return "Sebutkan prodinya."; let rows=getAllJadwalFlatForProdiList(prodiList); if(!rows.length) return `Belum ada materi untuk prodi yang dipilih.`; const set=new Set(rows.map(r=>r.materi)); let out=`📋 Materi di ${prodiList.length===1?prodiList[0].name:prodiList.length+' prodi'}:<br>`; out+=Array.from(set).sort().map(m=>`• ${m}`).join('<br>'); return out;}
-function answerJadwalForProdiList(prodiList,hari,bulan,sesi,materi){if(!prodiList.length) return "Prodi mana?"; let rows=getAllJadwalFlatForProdiList(prodiList); if(!rows.length) return `Belum ada jadwal.`; if(bulan) rows=rows.filter(r=>r.bulan===bulan); if(hari) rows=rows.filter(r=>r.hari===hari); if(sesi) rows=rows.filter(r=>r.sesi===sesi); if(materi) rows=rows.filter(r=>r.materi===materi); if(!rows.length) return `Tidak ada jadwal${hari?' hari '+hari:''}${bulan?' '+bulan:''}.`; let title=`📅 Jadwal ${prodiList.length===1?prodiList[0].name:prodiList.length+' prodi'}${hari?' hari '+hari:''}${bulan?' '+bulan:''}`; let out=`${title} (${rows.length} sesi):<br><br>`; rows.slice(0,12).forEach(r=>{out+=formatRow(r,dataProdi.find(p=>p.id===r.prodi),r.bulan)+'<br><br>';}); if(rows.length>12) out+=`<i>...dan ${rows.length-12} sesi lainnya.</i>`; return out;}
-function answerAllLibur(){let liburList=[]; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.isLibur) liburList.push(`${p.name}: ${r.hari} (${r.tgl}) Sesi ${r.sesi}`);});} if(!liburList.length) return "Belum ada jadwal libur."; return `🔴 Daftar jadwal libur:<br>`+liburList.join('<br>');}
-function answerSisaKuotaMateri(materiName){const m=dataMateri.find(m=>m.name.toLowerCase()===materiName.toLowerCase()); if(!m) return `Materi "${materiName}" tidak ditemukan.`; const used=countMateriUsage(m.name); if(m.quota===0) return `Materi "${m.name}" tidak terbatas. (Terpakai: ${used}x)`; const sisa=m.quota-used; return `💡 Materi "${m.name}": terpakai ${used} dari ${m.quota}, sisa ${sisa} kuota.`;}
-function answerInstrukturByMateri(materiName){if(!materiName) return "Sebutkan materi."; let instructors=new Set(); for(let p of dataProdi){let rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.materi===materiName && r.instruktur) instructors.add(r.instruktur);});} if(!instructors.size) return `Tidak ditemukan instruktur untuk materi "${materiName}".`; return `👨‍🏫 Instruktur materi "${materiName}": ${[...instructors].join(', ')}`;}
-
-function detectIntentExt(low){
-    const has=(...w)=>w.some(x=>low.includes(x));
-    if(has('halo','hai','hei','hello','hi','selamat','pagi','siang','sore','malam','bantuan','help')) return 'greeting';
-    if(has('konflik','bentrok','tabrakan','clash','bentrokan','cek semua')) return 'cek_konflik';
-    if(has('kuota','sisa','habis','limit','overlimit','tersisa')) return 'kuota';
-    if(has('rekap','ringkasan','laporan','total','semua jadwal','keseluruhan')) return 'rekap';
-    if(has('instruktur','pengajar','guru','diajar')) return 'instruktur';
-    if(has('ruang','room','kelas','tempat','gedung','lokasi')) return 'ruang';
-    if(has('materi apa','daftar materi','list materi','ada materi','pelajaran','materi di')) return 'materi_prodi';
-    if(has('jadwal','lihat','tampil','cek jadwal','show','schedule')) return 'jadwal';
-    if(has('prodi','kelas apa','daftar prodi','semua kelas','list kelas')) return 'daftar_prodi';
-    if(has('libur','merah','tanggal merah','hari libur')) return 'libur';
-    return 'unknown';
-}
-function processLocalChat(rawMsg){
-    const low=normalize(rawMsg);
-    const intent=detectIntentExt(low);
-    const prodiList=extractProdiList(low);
-    const hari=extractHari(low);
-    const bulan=extractBulan(low);
-    const sesi=extractSesi(low);
-    const materiName=extractMateriName(low);
-    const instrukturName=extractInstrukturName(low);
-    const ruangName=extractRuangName(low);
-    if(intent==='unknown') return "🤔 Hmm, kurang paham enih maksudnya. Coba gunakan contoh pertanyaan dari daftar.";
-    switch(intent){
-        case 'greeting': return getRandomGreeting() + chipsHTML(['Jadwal GS 1 Senin','Jadwal semua prodi','Sisa kuota','Cek konflik','Ruang yang dipakai FA 2','Instruktur materi AVK','Libur']);
-        case 'cek_konflik': return answerKonflik();
-        case 'kuota': return materiName? answerSisaKuotaMateri(materiName) : answerKuota();
-        case 'rekap': return answerRekapForProdiList(prodiList.length?prodiList:dataProdi,bulan);
-        case 'instruktur': return (materiName?answerInstrukturByMateri(materiName):(instrukturName?answerInstruktur(instrukturName):answerInstruktur(null)));
-        case 'ruang': return ruangName? answerRuang(ruangName,null,null) : answerRuang(null,hari,sesi);
-        case 'materi_prodi': return answerMateriByProdi(prodiList.length?prodiList:dataProdi);
-        case 'jadwal': return answerJadwalForProdiList(prodiList.length?prodiList:(low.includes('semua')?dataProdi:[]), hari, bulan, sesi, materiName);
-        case 'daftar_prodi': return answerDaftarProdi();
-        case 'libur': return answerAllLibur();
-        default: return "🤔 Hmm, kurang paham enih maksudnya.";
-    }
-}
-
-// Chatbot UI
-function toggleChat(){const c=document.getElementById('chatbotContainer');const isOpen=!c.classList.contains('scale-100');c.classList.toggle('scale-0',!isOpen);c.classList.toggle('scale-100',isOpen);if(isOpen&&!document.querySelector('#chatBody .chat-msg-bot')) showWelcome();}
-function showWelcome(){
-    updateAvatarEmoji();
-    const list = ["📅 Jadwal GS 1 hari Senin","📅 Jadwal semua prodi","📊 Sisa kuota materi","⚠️ Cek konflik jadwal","🏫 Daftar prodi","📋 Materi apa saja di GS 3?","👨‍🏫 Instruktur yang mengajar materi AVK","🚪 Ruang yang dipakai FA 2","🚪 Ruang kosong hari Rabu sesi II","📈 Rekap jadwal bulan Juli","🔴 Jadwal libur"];
-    let html = `${getRandomGreeting()}<br><br>Berikut contoh pertanyaan yang bisa kamu tanyakan:<br><br>`;
-    html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
-    list.forEach(q => { html += `<span class="chip" onclick="quickReply('${q.replace(/'/g, "\\'")}')" style="cursor:pointer;background:#e0f2fe;padding:4px 12px;border-radius:20px;font-size:.75rem;width:fit-content;">${q}</span>`; });
-    html += `</div><br>Atau tulis pertanyaanmu sendiri!`;
-    addBotMsg(html);
-}
-function addBotMsg(html){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot';d.innerHTML=html;b.appendChild(d);b.scrollTop=b.scrollHeight; updateAvatarEmoji();}
+function answerMateriByProdi(pl){if(!pl.length)return "Sebutkan prodinya.";let rows=getAllJadwalFlatForProdiList(pl);if(!rows.length)return `Belum ada materi untuk prodi yang dipilih.`;const set=new Set(rows.map(r=>r.materi));let out=`📋 Materi di ${pl.length===1?pl[0].name:pl.length+' prodi'}:<br>`;out+=Array.from(set).sort().map(m=>`• ${m}`).join('<br>');return out;}
+function answerJadwalForProdiList(pl,hari,bulan,sesi,materi){if(!pl.length)return "Prodi mana?";let rows=getAllJadwalFlatForProdiList(pl);if(!rows.length)return `Belum ada jadwal.`;if(bulan)rows=rows.filter(r=>r.bulan===bulan);if(hari)rows=rows.filter(r=>r.hari===hari);if(sesi)rows=rows.filter(r=>r.sesi===sesi);if(materi)rows=rows.filter(r=>r.materi===materi);if(!rows.length)return `Tidak ada jadwal${hari?' hari '+hari:''}${bulan?' '+bulan:''}.`;let title=`📅 Jadwal ${pl.length===1?pl[0].name:pl.length+' prodi'}${hari?' hari '+hari:''}${bulan?' '+bulan:''}`;let out=`${title} (${rows.length} sesi):<br><br>`;rows.slice(0,12).forEach(r=>{out+=formatRow(r,dataProdi.find(p=>p.id===r.prodi),r.bulan)+'<br><br>';});if(rows.length>12)out+=`<i>...dan ${rows.length-12} sesi lainnya.</i>`;return out;}
+function answerAllLibur(){let libur=[];for(const p of dataProdi){const rows=getAllJadwalFlat(p.id);rows.forEach(r=>{if(r.isLibur)libur.push(`${p.name}: ${r.hari} (${r.tgl}) Sesi ${r.sesi}`);});}if(!libur.length)return "Belum ada jadwal libur.";return `🔴 Daftar jadwal libur:<br>`+libur.join('<br>');}
+function answerSisaKuotaMateri(mn){const m=dataMateri.find(m=>m.name.toLowerCase()===mn.toLowerCase());if(!m)return `Materi "${mn}" tidak ditemukan.`;const used=countMateriUsage(m.name);if(m.quota===0)return `Materi "${m.name}" tidak terbatas. (Terpakai: ${used}x)`;const sisa=m.quota-used;return `💡 Materi "${m.name}": terpakai ${used} dari ${m.quota}, sisa ${sisa} kuota.`;}
+function answerInstrukturByMateri(mn){if(!mn)return "Sebutkan materi.";let inst=new Set();for(const p of dataProdi){const rows=getAllJadwalFlat(p.id);rows.forEach(r=>{if(r.materi===mn&&r.instruktur)inst.add(r.instruktur);});}if(!inst.size)return `Tidak ditemukan instruktur untuk materi "${mn}".`;return `👨‍🏫 Instruktur materi "${mn}": ${[...inst].join(', ')}`;}
+function detectIntentExt(low){const has=(...w)=>w.some(x=>low.includes(x));if(has('halo','hai','hei','hello','hi','selamat','pagi','siang','sore','malam','bantuan','help'))return'greeting';if(has('konflik','bentrok','tabrakan','clash','bentrokan','cek semua'))return'cek_konflik';if(has('kuota','sisa','habis','limit','overlimit','tersisa'))return'kuota';if(has('rekap','ringkasan','laporan','total','semua jadwal','keseluruhan'))return'rekap';if(has('instruktur','pengajar','guru','diajar'))return'instruktur';if(has('ruang','room','kelas','tempat','gedung','lokasi'))return'ruang';if(has('materi apa','daftar materi','list materi','ada materi','pelajaran','materi di'))return'materi_prodi';if(has('jadwal','lihat','tampil','cek jadwal','show','schedule'))return'jadwal';if(has('prodi','kelas apa','daftar prodi','semua kelas','list kelas'))return'daftar_prodi';if(has('libur','merah','tanggal merah','hari libur'))return'libur';return'unknown';}
+function processLocalChat(raw){const low=normalize(raw);const intent=detectIntentExt(low);const pl=extractProdiList(low);const hari=extractHari(low);const bulan=extractBulan(low);const sesi=extractSesi(low);const mn=extractMateriName(low);const iname=extractInstrukturName(low);const rname=extractRuangName(low);if(intent==='unknown')return "🤔 Hmm, kurang paham enih maksudnya. Coba gunakan contoh pertanyaan dari daftar.";switch(intent){case'greeting':return getRandomGreeting()+chipsHTML(['Jadwal GS 1 Senin','Jadwal semua prodi','Sisa kuota','Cek konflik','Ruang yang dipakai FA 2','Instruktur materi AVK','Libur']);case'cek_konflik':return answerKonflik();case'kuota':return mn?answerSisaKuotaMateri(mn):answerKuota();case'rekap':return answerRekapForProdiList(pl.length?pl:dataProdi,bulan);case'instruktur':return (mn?answerInstrukturByMateri(mn):(iname?answerInstruktur(iname):answerInstruktur(null)));case'ruang':return rname?answerRuang(rname,null,null):answerRuang(null,hari,sesi);case'materi_prodi':return answerMateriByProdi(pl.length?pl:dataProdi);case'jadwal':return answerJadwalForProdiList(pl.length?pl:(low.includes('semua')?dataProdi:[]),hari,bulan,sesi,mn);case'daftar_prodi':return answerDaftarProdi();case'libur':return answerAllLibur();default:return "🤔 Hmm, kurang paham enih maksudnya.";}}
+function toggleChat(){const c=document.getElementById('chatbotContainer');const isOpen=!c.classList.contains('scale-100');c.classList.toggle('scale-0',!isOpen);c.classList.toggle('scale-100',isOpen);if(isOpen&&!document.querySelector('#chatBody .chat-msg-bot'))showWelcome();}
+function showWelcome(){updateAvatarEmoji();const list=["📅 Jadwal GS 1 hari Senin","📅 Jadwal semua prodi","📊 Sisa kuota materi","⚠️ Cek konflik jadwal","🏫 Daftar prodi","📋 Materi apa saja di GS 3?","👨‍🏫 Instruktur yang mengajar materi AVK","🚪 Ruang yang dipakai FA 2","🚪 Ruang kosong hari Rabu sesi II","📈 Rekap jadwal bulan Juli","🔴 Jadwal libur"];let html=`${getRandomGreeting()}<br><br>Berikut contoh pertanyaan yang bisa kamu tanyakan:<br><br>`;html+=`<div style="display:flex;flex-direction:column;gap:6px;">`;list.forEach(q=>{html+=`<span class="chip" onclick="quickReply('${q.replace(/'/g,"\\'")}')" style="cursor:pointer;background:#e0f2fe;padding:4px 12px;border-radius:20px;font-size:.75rem;width:fit-content;">${q}</span>`;});html+=`</div><br>Atau tulis pertanyaanmu sendiri!`;addBotMsg(html);}
+function addBotMsg(html){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot';d.innerHTML=html;b.appendChild(d);b.scrollTop=b.scrollHeight;updateAvatarEmoji();}
 function addUserMsg(txt){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-user';d.textContent=txt;b.appendChild(d);b.scrollTop=b.scrollHeight;}
 function addTyping(){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot chat-typing';d.id='chat-typing';d.innerHTML='<span></span><span></span><span></span>';b.appendChild(d);b.scrollTop=b.scrollHeight;return d;}
 function sendChatMessage(){const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg)return;inp.value='';addUserMsg(msg);const t=addTyping();setTimeout(()=>{t.remove();const reply=processLocalChat(msg);addBotMsg(reply);},400);}
-window.onload = initApp;
+document.addEventListener('click',function(e){const c=document.getElementById('chatbotContainer');const btn=document.getElementById('chatbotBtn');if(!c||!btn)return;const isOpen=!c.classList.contains('scale-0');if(isOpen&&!c.contains(e.target)&&!btn.contains(e.target)){c.classList.add('scale-0');c.classList.remove('scale-100');}});
+window.onload=async()=>{await fetchMaster();await fetchAllProdiSchedules();subscribeAllProdi();document.getElementById('monthSelector').innerHTML=daftarBulan.map(b=>`<option value="${b}">${b}</option>`).join('');};
 </script>
 </body>
 </html>
