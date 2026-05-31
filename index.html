@@ -4,29 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jadwal Batch 17 Angkasa Nusantara</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTSc7MBsyvbMUmHrvKG0GGL8W1VV3eVjQ",
-            authDomain: "jadwal-angkasa-nusantara.firebaseapp.com",
-            projectId: "jadwal-angkasa-nusantara",
-            storageBucket: "jadwal-angkasa-nusantara.firebasestorage.app",
-            messagingSenderId: "968723639221",
-            appId: "1:968723639221:web:edda08d8f61c59004387fc"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app); const db = getFirestore(app);
-        window.fb = { db, auth, signInAnonymously, doc, setDoc, getDoc, onSnapshot, collection, getDocs };
-    </script>
+    
     <style>
-        .jadwal-table { border-collapse: collapse; width: 100%; }
-        .jadwal-table th, .jadwal-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px; }
+        .jadwal-table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        .jadwal-table th, .jadwal-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px; word-wrap: break-word; overflow-wrap: break-word; }
         .jadwal-table th { background-color: #ffff00; font-weight: bold; }
-        .jadwal-table td.hari-cell { cursor: pointer; transition: background-color 0.2s; height: 80px; padding: 0; width: 15%; }
+        .jadwal-table tr:first-child th:nth-child(1) { width: 5%; }
+        .jadwal-table tr:first-child th:nth-child(2) { width: 5%; }
+        .jadwal-table tr:first-child th:nth-child(3) { width: 10%; }
+        .jadwal-table tr:first-child th:nth-child(n+4) { width: 16%; }
+        .jadwal-table td.hari-cell { cursor: pointer; transition: background-color 0.2s; height: 80px; padding: 0; }
         .jadwal-table td.hari-cell:hover { filter: brightness(0.95); }
         .cell-content { display: flex; flex-direction: column; height: 100%; }
         .cell-materi { font-weight: bold; padding: 2px; }
@@ -50,6 +40,9 @@
         .chip { display:inline-block; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:20px; padding:4px 11px; font-size:0.75rem; cursor:pointer; margin:2px; transition:background .15s; }
         .chip:hover { background:#bae6fd; }
 
+        body.print-auto .jadwal-table { table-layout: auto !important; }
+        body.print-simetris .jadwal-table { table-layout: fixed !important; }
+
         @media print {
             @page { size: A4 landscape; margin: 10mm; }
             .no-print, button, select, .max-w-7xl, #editModal, #printModal, #chatbotContainer, #chatbotBtn, .conflict-dot { display: none !important; }
@@ -66,6 +59,13 @@
             .print-only-title { display: block; text-align: center; margin-bottom: 15px; font-size: 1.3rem; font-weight: bold; page-break-after: avoid; }
             .jadwal-table { page-break-inside: avoid; }
             tr, th, td { page-break-inside: avoid; }
+
+            body.font-print-sm .jadwal-table { font-size: 10px !important; }
+            body.font-print-sm .cell-instruktur, body.font-print-sm .cell-ruang { font-size: 8px !important; }
+            body.font-print-md .jadwal-table { font-size: 12px !important; }
+            body.font-print-md .cell-instruktur, body.font-print-md .cell-ruang { font-size: 10px !important; }
+            body.font-print-lg .jadwal-table { font-size: 14px !important; }
+            body.font-print-lg .cell-instruktur, body.font-print-lg .cell-ruang { font-size: 11px !important; }
         }
         @media screen { .print-only-title { display: none !important; } }
     </style>
@@ -94,15 +94,11 @@
             <h2 id="scheduleTitle" class="text-2xl font-bold uppercase">JADWAL</h2>
             <div class="flex items-center gap-2">
                 <select id="monthSelector" onchange="renderScheduleTable()" class="border p-2 rounded text-lg font-bold bg-white">
-                    <option value="Juli 2026">Juli 2026</option>
-                    <option value="Agustus 2026">Agustus 2026</option>
-                    <option value="September 2026">September 2026</option>
-                    <option value="Oktober 2026">Oktober 2026</option>
-                    <option value="November 2026">November 2026</option>
+                    <!-- Otomatis diisi oleh JavaScript -->
                 </select>
                 <div class="flex gap-1 ml-2 border-l pl-3 border-gray-300">
-                    <button onclick="addWeek()" class="bg-blue-600 text-white w-10 h-10 rounded shadow hover:bg-blue-700 flex justify-center items-center"><i class="fas fa-plus"></i></button>
-                    <button onclick="removeWeek()" class="bg-yellow-500 text-white w-10 h-10 rounded shadow hover:bg-yellow-600 flex justify-center items-center"><i class="fas fa-minus"></i></button>
+                    <button onclick="addWeek()" class="bg-blue-600 text-white w-10 h-10 rounded shadow hover:bg-blue-700 flex justify-center items-center" title="Tambah Minggu"><i class="fas fa-plus"></i></button>
+                    <button onclick="removeWeek()" class="bg-yellow-500 text-white w-10 h-10 rounded shadow hover:bg-yellow-600 flex justify-center items-center" title="Hapus Minggu Terakhir"><i class="fas fa-minus"></i></button>
                 </div>
                 <button onclick="openPrintModal()" class="bg-green-600 text-white px-4 py-2 h-10 rounded shadow hover:bg-green-700 ml-2 flex items-center gap-2"><i class="fas fa-file-pdf"></i> Cetak PDF</button>
                 <button onclick="closeSchedule()" class="bg-red-500 text-white px-4 py-2 h-10 rounded shadow hover:bg-red-600 ml-2"><i class="fas fa-times mr-2"></i>Tutup</button>
@@ -119,17 +115,16 @@
             <h2 class="text-xl font-bold text-gray-800">Pengaturan Master Data</h2>
             <button onclick="closeSettings()" class="text-gray-500 hover:text-red-500 transition"><i class="fas fa-times text-xl"></i></button>
         </div>
-        <!-- Ubah menjadi 4 kolom -->
         <div class="flex-1 overflow-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Prodi -->
             <div>
                 <h3 class="font-bold border-b pb-2 mb-3 text-blue-700">Program Studi</h3>
                 <div class="flex gap-2 mb-3">
-                    <input id="newProdiName" type="text" placeholder="Nama Prodi (mis: GS 6)" class="border p-2 w-full text-sm rounded">
+                    <input id="newProdiName" type="text" placeholder="Nama Prodi" class="border p-2 w-full text-sm rounded">
                     <select id="newProdiRoom" class="border p-2 text-sm rounded w-1/2"></select>
                     <button onclick="addProdi()" class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700 flex-shrink-0"><i class="fas fa-plus"></i></button>
                 </div>
-                <ul id="listSettingProdi" class="text-sm space-y-2"></ul>
+                <ul id="listSettingProdi" class="text-sm space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
             </div>
             <!-- Ruang -->
             <div>
@@ -138,7 +133,7 @@
                     <input id="newRoomName" type="text" placeholder="Nama Ruang Baru" class="border p-2 w-full text-sm rounded">
                     <button onclick="addRoom()" class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700 flex-shrink-0"><i class="fas fa-plus"></i></button>
                 </div>
-                <ul id="listSettingRoom" class="text-sm space-y-2"></ul>
+                <ul id="listSettingRoom" class="text-sm space-y-2 max-h-40 overflow-y-auto pr-1"></ul>
             </div>
             <!-- Materi -->
             <div>
@@ -154,9 +149,9 @@
                         Bebas Bentrok (Bisa paralel)
                     </label>
                 </div>
-                <ul id="listSettingMateri" class="text-sm space-y-2"></ul>
+                <ul id="listSettingMateri" class="text-sm space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
             </div>
-            <!-- Instruktur (BARU) -->
+            <!-- Instruktur -->
             <div>
                 <h3 class="font-bold border-b pb-2 mb-3 text-blue-700">Instruktur</h3>
                 <div class="flex flex-col gap-2 mb-3">
@@ -167,9 +162,21 @@
                         </select>
                         <button onclick="addInstruktur()" class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700 flex-shrink-0" title="Tambah Instruktur / Mapping Materi"><i class="fas fa-plus"></i></button>
                     </div>
-                    <span class="text-[10px] text-gray-500 leading-tight">Jika instruktur mengajar >1 materi, ketik nama yang sama lalu pilih materi lainnya.</span>
+                    <span class="text-[10px] text-gray-500 leading-tight">Tambah relasi: Ketik ulang nama yg sama, pilih materinya, klik +.</span>
                 </div>
-                <ul id="listSettingInstruktur" class="text-sm space-y-2"></ul>
+                <ul id="listSettingInstruktur" class="text-sm space-y-2 max-h-40 overflow-y-auto pr-1"></ul>
+            </div>
+            <!-- Periode Batch Dinamis -->
+            <div class="col-span-1 md:col-span-2 lg:col-span-4 mt-4 border-t pt-4">
+                <h3 class="font-bold mb-3 text-blue-700">Periode Batch (Otomatis)</h3>
+                <div class="flex flex-col gap-2 max-w-sm">
+                    <label class="text-xs font-bold text-gray-600">Tanggal Mulai (Senin Pertama)</label>
+                    <div class="flex gap-2">
+                        <input id="settingStartDate" type="date" class="border p-2 w-full text-sm rounded shadow-inner">
+                        <button onclick="saveStartDate()" class="bg-blue-600 text-white px-4 rounded hover:bg-blue-700 font-medium">Simpan Tanggal</button>
+                    </div>
+                    <p class="text-[10.5px] text-gray-500 leading-relaxed mt-1 text-justify">Mengubah tanggal ini akan otomatis menghitung kalender, menyusun daftar bulan, dan tanggal untuk 6 bulan (26 minggu) ke depan.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -189,7 +196,6 @@
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 mb-1">Instruktur</label>
-                <!-- Ubah dari Input type text menjadi Select dropdown -->
                 <select id="editInstruktur" class="w-full border border-gray-300 p-2 rounded text-sm focus:ring focus:ring-blue-200"></select>
             </div>
             <div>
@@ -208,7 +214,7 @@
     </div>
 </div>
 
-<!-- MODAL AI RESOLUTION (KONFLIK) -->
+<!-- MODAL AI RESOLUTION -->
 <div id="aiResolutionModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[60] flex justify-center items-center no-print">
     <div class="bg-white w-[400px] rounded-xl shadow-2xl overflow-hidden flex flex-col">
         <div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3">
@@ -221,7 +227,6 @@
         <div class="p-5">
             <p class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">Masalah yang ditemukan:</p>
             <ul id="aiConflictList" class="list-disc ml-5 text-sm text-gray-600 space-y-1 mb-5"></ul>
-            
             <p class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">Rekomendasi Jaarvis:</p>
             <ul id="aiRecommendationList" class="list-disc ml-5 text-sm text-green-700 space-y-1 mb-2"></ul>
         </div>
@@ -239,9 +244,24 @@
             <h2 class="text-lg font-bold text-gray-800">Cetak PDF (Pilih Bulan)</h2>
             <button onclick="closePrintModal()" class="text-gray-500 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
         </div>
-        <div class="p-5">
-            <button onclick="toggleAllPrintMonths()" class="text-blue-600 text-sm font-bold mb-4 hover:underline flex items-center gap-1"><i class="fas fa-check-double"></i> Pilih Semua / Batal</button>
-            <div id="printMonthList" class="flex flex-col gap-2"></div>
+        <div class="p-5 flex-1 overflow-y-auto max-h-[60vh]">
+            <button onclick="toggleAllPrintMonths()" class="text-blue-600 text-sm font-bold mb-3 hover:underline flex items-center gap-1"><i class="fas fa-check-double"></i> Pilih Semua / Batal</button>
+            <div id="printMonthList" class="flex flex-col gap-2 max-h-40 overflow-y-auto p-1 mb-5 border-b pb-5"></div>
+            <h3 class="font-bold text-sm text-gray-700 mb-2">Pengaturan Layout Cetak</h3>
+            <div class="flex flex-col gap-4 bg-gray-50 p-4 rounded border">
+                <label class="flex items-center gap-2 text-sm cursor-pointer font-medium text-gray-700">
+                    <input type="checkbox" id="printSymmetric" class="w-4 h-4 rounded text-blue-600" checked>
+                    Kolom Hari Simetris (Sama Lebar)
+                </label>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Ukuran Teks Tabel</label>
+                    <select id="printFontSize" class="w-full border border-gray-300 p-2 rounded text-sm focus:ring focus:ring-blue-200">
+                        <option value="font-print-sm">Kecil (Sangat Disarankan)</option>
+                        <option value="font-print-md" selected>Normal</option>
+                        <option value="font-print-lg">Besar</option>
+                    </select>
+                </div>
+            </div>
         </div>
         <div class="p-4 border-t bg-gray-50 rounded-b-xl flex justify-end">
             <button onclick="executePrint()" class="bg-green-600 text-white px-5 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2 font-medium"><i class="fas fa-print"></i> Proses Cetak</button>
@@ -271,33 +291,45 @@
     </div>
 </div>
 
-<script>
-// ============================================================
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCTSc7MBsyvbMUmHrvKG0GGL8W1VV3eVjQ",
+    authDomain: "jadwal-angkasa-nusantara.firebaseapp.com",
+    projectId: "jadwal-angkasa-nusantara",
+    storageBucket: "jadwal-angkasa-nusantara.firebasestorage.app",
+    messagingSenderId: "968723639221",
+    appId: "1:968723639221:web:edda08d8f61c59004387fc"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app); const db = getFirestore(app);
+window.fb = { db, auth, signInAnonymously, doc, setDoc, getDoc, onSnapshot, collection, getDocs };
+
+// Daftarkan Fungsi Ke Global agar bisa diakses HTML onclick
+window.openSettings = openSettings; window.closeSettings = closeSettings;
+window.addProdi = addProdi; window.deleteProdi = deleteProdi;
+window.addRoom = addRoom; window.deleteRoom = deleteRoom;
+window.addMateri = addMateri; window.deleteMateri = deleteMateri;
+window.addInstruktur = addInstruktur; window.deleteInstruktur = deleteInstruktur; window.removeInstrukturMateri = removeInstrukturMateri;
+window.openSchedule = openSchedule; window.closeSchedule = closeSchedule;
+window.renderScheduleTable = renderScheduleTable; window.addWeek = addWeek; window.removeWeek = removeWeek;
+window.openEditModal = openEditModal; window.closeEditModal = closeEditModal;
+window.updateMateriInfo = updateMateriInfo; window.updateInstrukturDropdown = updateInstrukturDropdown;
+window.handleSaveClick = handleSaveClick; window.forceSaveCellData = forceSaveCellData; window.closeAiResolutionModal = closeAiResolutionModal;
+window.openPrintModal = openPrintModal; window.closePrintModal = closePrintModal; window.toggleAllPrintMonths = toggleAllPrintMonths; window.executePrint = executePrint;
+window.toggleChat = toggleChat; window.sendChatMessage = sendChatMessage; window.quickReply = quickReply;
+window.saveStartDate = saveStartDate;
+
 // DATA & KONSTANTA
-// ============================================================
 const OLD_MATERI_BEBAS_BENTROK = ['SENAM PAGI','KESAMAPTAAN','OUTBOUND','Administration','Perkenalan Staff','Beauty & Handsome Class','PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII'];
 function isMateriBebas(name){const m=dataMateri.find(x=>x.name===name);return m?!!m.isBebas:false;}
 
-let dataProdi = [
-    {id:'gs1',name:'GS 1',defaultRoom:'Ruang Airbus'},{id:'gs2',name:'GS 2',defaultRoom:'Ruang Boing'},
-    {id:'gs3',name:'GS 3',defaultRoom:'Ruang Airbus'},{id:'gs4',name:'GS 4',defaultRoom:'Ruang Boing'},
-    {id:'gs5',name:'GS 5',defaultRoom:'Ruang Airbus'},{id:'fa1',name:'FA 1',defaultRoom:'Ruang Boing'},
-    {id:'fa2',name:'FA 2',defaultRoom:'ATR'},{id:'fa3',name:'FA 3',defaultRoom:'ATR'}
-];
-let dataRoom = ['Ruang Boing','Ruang Airbus','ATR','Outdoor','Kantor Gedung 1'];
-let dataMateri = [
-    {name:'Grooming & Attitude',quota:10},{name:'AVK',quota:10},{name:'Ramp Handling',quota:10},
-    {name:'Communication Skill',quota:10},{name:'Customer Service',quota:10},{name:'Reservasi & Ticketing',quota:10},
-    {name:'PB Handling',quota:10},{name:'English Conversation',quota:10},{name:'Japan',quota:10},
-    {name:'Psikotest',quota:10},{name:'KESAMAPTAAN',quota:10},{name:'Administration',quota:10},
-    {name:'Perkenalan Staff',quota:10},{name:'Beauty Class',quota:10},{name:'PHOTOSHOOT',quota:10},
-    {name:'Aviation Knowledge',quota:10},{name:'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII',quota:10},
-    {name:'SENAM PAGI',quota:10},{name:'Basic Cabin',quota:10},{name:'Announcement',quota:10},
-    {name:'Flight Safety',quota:10},{name:'Safety Demo',quota:10},{name:'Beauty & Handsome Class',quota:10},
-    {name:'Pax & Bag Handling',quota:10},{name:'Basic Cargo',quota:10},{name:'OUTBOUND',quota:10}
-].map(m=>({...m, isBebas: OLD_MATERI_BEBAS_BENTROK.includes(m.name)}));
-
-// Data Instruktur Baru
+let dataProdi = [];
+let dataRoom = [];
+let dataMateri = [];
 let dataInstruktur = [];
 
 const strukturWaktu = [
@@ -306,15 +338,50 @@ const strukturWaktu = [
     {sesi:'VII',jam:'16.30-18.00'}
 ];
 const daftarHari = ['Senin','Selasa','Rabu','Kamis','Jumat'];
-const listMingguRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII'];
-const bulanConfig = {
-    'Juli 2026':     {weeks:['I','II','III','IV','V'],        mondayDates:['2026-06-29','2026-07-06','2026-07-13','2026-07-20','2026-07-27']},
-    'Agustus 2026':  {weeks:['VI','VII','VIII','IX'],         mondayDates:['2026-08-03','2026-08-10','2026-08-17','2026-08-24']},
-    'September 2026':{weeks:['X','XI','XII','XIII','XIV'],    mondayDates:['2026-08-31','2026-09-07','2026-09-14','2026-09-21','2026-09-28']},
-    'Oktober 2026':  {weeks:['XV','XVI','XVII','XVIII'],      mondayDates:['2026-10-05','2026-10-12','2026-10-19','2026-10-26']},
-    'November 2026': {weeks:['XIX','XX','XXI','XXII'],        mondayDates:['2026-11-02','2026-11-09','2026-11-16','2026-11-23']}
-};
-const daftarBulan = Object.keys(bulanConfig);
+
+// VARIABEL GLOBAL PENTING (Termasuk Romawi yang sebelumnya hilang)
+const romawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII','XXIII','XXIV','XXV','XXVI'];
+let batchStartDate = '2026-06-29'; 
+let bulanConfig = {};
+let daftarBulan = [];
+
+function updateBulanConfig() {
+    bulanConfig = {};
+    let currentDate = new Date(batchStartDate);
+    const day = currentDate.getDay();
+    const diff = currentDate.getDate() - day + (day === 0 ? -6 : 1);
+    currentDate.setDate(diff);
+
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+    for (let i = 0; i < 26; i++) {
+        let thurs = new Date(currentDate);
+        thurs.setDate(thurs.getDate() + 3); 
+        let mName = `${monthNames[thurs.getMonth()]} ${thurs.getFullYear()}`;
+
+        if (!bulanConfig[mName]) {
+            bulanConfig[mName] = { weeks: [], mondayDates: [] };
+        }
+        bulanConfig[mName].weeks.push(romawi[i]);
+        
+        const yyyy = currentDate.getFullYear();
+        const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(currentDate.getDate()).padStart(2, '0');
+        bulanConfig[mName].mondayDates.push(`${yyyy}-${mm}-${dd}`);
+
+        currentDate.setDate(currentDate.getDate() + 7);
+    }
+    daftarBulan = Object.keys(bulanConfig);
+}
+
+function updateMonthDropdown() {
+    const ms = document.getElementById('monthSelector');
+    if(ms) {
+        const currentVal = ms.value;
+        ms.innerHTML = daftarBulan.map(b => `<option value="${b}">${b}</option>`).join('');
+        if(daftarBulan.includes(currentVal)) ms.value = currentVal;
+    }
+}
 
 let scheduleData = {};
 let allProdiSchedules = {};
@@ -323,12 +390,15 @@ let currentEditCell = null;
 let pendingSaveData = null;
 let unsubAllProdi = {};
 
-// ============================================================
-// HELPER & FIREBASE
-// ============================================================
 function getActiveRoom(r,b){const i=daftarBulan.indexOf(b);if(i%2!==0){if(r==='Ruang Airbus')return'Ruang Boing';if(r==='Ruang Boing')return'Ruang Airbus';}return r;}
 function getDefaultWeeksForMonth(b){return bulanConfig[b]?.weeks||['I','II','III','IV'];}
-function getMondayForWeek(bulan,minggu){const c=bulanConfig[bulan];if(!c)return new Date('2026-07-06');const wi=c.weeks.indexOf(minggu);if(wi!==-1)return new Date(c.mondayDates[wi]);const li=c.weeks.length-1;const m=new Date(c.mondayDates[li]);m.setDate(m.getDate()+(listMingguRomawi.indexOf(minggu)-listMingguRomawi.indexOf(c.weeks[li]))*7);return m;}
+function getMondayForWeek(bulan,minggu){
+    const c=bulanConfig[bulan];
+    if(!c) return new Date(batchStartDate);
+    const wi=c.weeks.indexOf(minggu);
+    if(wi!==-1) return new Date(c.mondayDates[wi]);
+    return new Date(batchStartDate);
+}
 function countMateriUsage(name){let c=0;for(const p in allProdiSchedules){const sd=allProdiSchedules[p];for(const b in sd)for(const m in sd[b])for(const s in sd[b][m])for(const h in sd[b][m][s])if(sd[b][m][s][h]?.materi===name)c++;}return c;}
 
 async function waitFirebase(){while(!window.fb)await new Promise(r=>setTimeout(r,50));return window.fb;}
@@ -344,15 +414,17 @@ async function fetchMaster(){
             const d=snap.data();
             if(d.prodi)dataProdi=d.prodi;
             if(d.room)dataRoom=d.room;
-            if(d.materi){
-                dataMateri=typeof d.materi[0]==='string'?
-                    d.materi.map(m=>({name:m,quota:10,isBebas:OLD_MATERI_BEBAS_BENTROK.includes(m)})):
-                    d.materi.map(m=>({name:m.name,quota:m.quota,isBebas:m.isBebas!==undefined?m.isBebas:OLD_MATERI_BEBAS_BENTROK.includes(m.name)}));
-            }
+            if(d.materi) dataMateri=typeof d.materi[0]==='string'? d.materi.map(m=>({name:m,quota:10,isBebas:OLD_MATERI_BEBAS_BENTROK.includes(m)})): d.materi.map(m=>({name:m.name,quota:m.quota,isBebas:m.isBebas!==undefined?m.isBebas:OLD_MATERI_BEBAS_BENTROK.includes(m.name)}));
             if(d.instruktur) dataInstruktur = d.instruktur;
+            if(d.batchStartDate) batchStartDate = d.batchStartDate;
         }else {
+            dataProdi = [{id:'gs1',name:'GS 1',defaultRoom:'Ruang Airbus'}];
+            dataRoom = ['Ruang Airbus'];
+            dataMateri = [{name:'Psikotest', quota:10, isBebas:false}];
             await saveMaster(fb);
         }
+        updateBulanConfig();
+        updateMonthDropdown();
         setSyncStatus(true);
     }catch(e){
         console.error(e);setSyncStatus(false);
@@ -369,6 +441,7 @@ async function saveMaster(fbObj = null){
             room: dataRoom, 
             materi: dataMateri, 
             instruktur: dataInstruktur,
+            batchStartDate: batchStartDate,
             updatedAt: new Date().toISOString()
         });
     }catch(e){
@@ -382,9 +455,6 @@ async function fetchAllProdiSchedules(){const fb=await waitFirebase();for(const 
 function subscribeAllProdi(){waitFirebase().then(fb=>{dataProdi.forEach(p=>{if(unsubAllProdi[p.id])unsubAllProdi[p.id]();unsubAllProdi[p.id]=fb.onSnapshot(fb.doc(fb.db,'jadwal_prodi',p.id),snap=>{const inc=snap.exists()?snap.data().schedule||{}:{};allProdiSchedules[p.id]=inc;if(currentProdi?.id===p.id&&JSON.stringify(inc)!==JSON.stringify(scheduleData)){scheduleData=inc;renderScheduleTable();}renderDashboard();});});});}
 function saveData(){saveProdiSchedule();}
 
-// ============================================================
-// UI PENGATURAN DATA
-// ============================================================
 function updateDropdowns(){
     const rs=document.getElementById('newProdiRoom');
     if(rs)rs.innerHTML=dataRoom.map(r=>`<option value="${r}">${r}</option>`).join('');
@@ -409,30 +479,21 @@ function updateDropdowns(){
     }
 }
 
-// Logic Instruktur Dropdown Matching (Dinamis berdasarkan materi)
-function updateInstrukturDropdown(selectedMateri = '', currentInstrukturValue = ''){
+function updateInstrukturDropdown(selectedMateri, currentInstrukturValue){
     const dd = document.getElementById('editInstruktur');
     if(!dd) return;
     
-    // Jika fungsi dipanggil dari onchange select materi (tanpa parameter manual)
-    if(!selectedMateri && document.getElementById('editMateri')) {
+    let isOnChange = false;
+    if(selectedMateri === undefined && currentInstrukturValue === undefined) {
         selectedMateri = document.getElementById('editMateri').value;
-    }
-    // Ambil value saat ini dari dropdown jika tidak dipassing dari openModal
-    if(currentInstrukturValue === '' && dd.value !== '') {
-        currentInstrukturValue = dd.value;
+        isOnChange = true;
     }
 
     let html = '<option value="">- Kosong -</option>';
-    let matched = [];
-    let others = [];
-
+    let matched = []; let others = [];
     dataInstruktur.forEach(inst => {
-        if (selectedMateri && inst.materiList && inst.materiList.includes(selectedMateri)) {
-            matched.push(inst.name);
-        } else {
-            others.push(inst.name);
-        }
+        if (selectedMateri && inst.materiList && inst.materiList.includes(selectedMateri)) matched.push(inst.name);
+        else others.push(inst.name);
     });
 
     if (matched.length > 0) {
@@ -440,7 +501,6 @@ function updateInstrukturDropdown(selectedMateri = '', currentInstrukturValue = 
         matched.forEach(m => html += `<option value="${m}">${m}</option>`);
         html += `</optgroup>`;
     }
-
     if (others.length > 0) {
         html += `<optgroup label="Instruktur Lainnya">`;
         others.forEach(o => html += `<option value="${o}">${o}</option>`);
@@ -449,15 +509,17 @@ function updateInstrukturDropdown(selectedMateri = '', currentInstrukturValue = 
 
     dd.innerHTML = html;
 
-    // Pastikan nilai sebelumnya tetap terpilih jika valid, atau tambahkan jika data lama/belum terdaftar
-    if (currentInstrukturValue) {
-        let exists = Array.from(dd.options).some(opt => opt.value === currentInstrukturValue);
-        if (exists) {
-            dd.value = currentInstrukturValue;
-        } else {
-            // Instruktur lama yang tidak ada di master
-            dd.innerHTML += `<optgroup label="Data Terjadwal (Luar Master)"><option value="${currentInstrukturValue}">${currentInstrukturValue}</option></optgroup>`;
-            dd.value = currentInstrukturValue;
+    if (isOnChange) {
+        if (matched.length > 0) dd.value = matched[0];
+        else dd.value = "";
+    } else {
+        if (currentInstrukturValue) {
+            let exists = Array.from(dd.options).some(opt => opt.value === currentInstrukturValue);
+            if (exists) dd.value = currentInstrukturValue;
+            else {
+                dd.innerHTML += `<optgroup label="Data Terjadwal (Luar Master)"><option value="${currentInstrukturValue}">${currentInstrukturValue}</option></optgroup>`;
+                dd.value = currentInstrukturValue;
+            }
         }
     }
 }
@@ -482,8 +544,24 @@ function updateMateriInfo(){
     el.classList.remove('hidden');
 }
 
-function openSettings(){document.getElementById('settingsModal').classList.remove('hidden');renderSettingsLists();}
+function openSettings(){
+    document.getElementById('settingsModal').classList.remove('hidden');
+    document.getElementById('settingStartDate').value = batchStartDate;
+    renderSettingsLists();
+}
 function closeSettings(){document.getElementById('settingsModal').classList.add('hidden');}
+
+async function saveStartDate() {
+    const val = document.getElementById('settingStartDate').value;
+    if(!val) return;
+    batchStartDate = val;
+    updateBulanConfig();
+    updateMonthDropdown();
+    await saveMaster();
+    renderDashboard();
+    if (currentProdi) renderScheduleTable();
+    alert('Tanggal mulai batch berhasil diperbarui!');
+}
 
 function renderSettingsLists(){
     document.getElementById('listSettingProdi').innerHTML=dataProdi.map((p,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span><b>${p.name}</b> (${p.defaultRoom})</span><button onclick="deleteProdi(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');
@@ -494,7 +572,6 @@ function renderSettingsLists(){
         return `<li class="flex justify-between items-center bg-white p-2 rounded border"><div class="flex-1 min-w-0 text-xs break-words">${m.name}${b}${fb}</div><button onclick="deleteMateri(${i})" class="text-red-500 hover:text-red-700 ml-1 flex-shrink-0"><i class="fas fa-trash"></i></button></li>`;
     }).join('');
     
-    // Render Instruktur
     document.getElementById('listSettingInstruktur').innerHTML = dataInstruktur.map((inst, i) => {
         const matChips = (inst.materiList || []).map((m, mi) =>
             `<span class="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded mr-1 mb-1 inline-flex items-center gap-1">
@@ -530,44 +607,15 @@ function addInstruktur(){
     const name = document.getElementById('newInstrukturName').value.trim();
     const mat = document.getElementById('newInstrukturMateri').value;
     if (!name) return;
-
-    // Cek apakah instruktur dengan nama tsb sudah ada (case-insensitive)
     let existing = dataInstruktur.find(i => i.name.toLowerCase() === name.toLowerCase());
-    
-    if (existing) {
-        if (mat && !existing.materiList.includes(mat)) {
-            existing.materiList.push(mat);
-        }
-    } else {
-        dataInstruktur.push({
-            name: name,
-            materiList: mat ? [mat] : []
-        });
-    }
+    if (existing) { if (mat && !existing.materiList.includes(mat)) existing.materiList.push(mat); } 
+    else { dataInstruktur.push({ name: name, materiList: mat ? [mat] : [] }); }
+    document.getElementById('newInstrukturName').value = ''; document.getElementById('newInstrukturMateri').value = '';
+    saveMaster(); renderSettingsLists();
+}
+function deleteInstruktur(i){if(confirm('Hapus instruktur ini?')){dataInstruktur.splice(i,1);saveMaster();renderSettingsLists();}}
+function removeInstrukturMateri(instIndex, matIndex) {if(confirm('Hapus materi dari instruktur ini?')){dataInstruktur[instIndex].materiList.splice(matIndex, 1);saveMaster();renderSettingsLists();}}
 
-    document.getElementById('newInstrukturName').value = '';
-    document.getElementById('newInstrukturMateri').value = '';
-    saveMaster();
-    renderSettingsLists();
-}
-function deleteInstruktur(i){
-    if(confirm('Hapus instruktur ini secara permanen?')){
-        dataInstruktur.splice(i,1);
-        saveMaster();
-        renderSettingsLists();
-    }
-}
-function removeInstrukturMateri(instIndex, matIndex) {
-    if(confirm('Hapus materi ini dari daftar ajar instruktur?')) {
-        dataInstruktur[instIndex].materiList.splice(matIndex, 1);
-        saveMaster();
-        renderSettingsLists();
-    }
-}
-
-// ============================================================
-// UI JADWAL
-// ============================================================
 function renderDashboard(){const con=document.getElementById('prodiContainer');con.innerHTML='';dataProdi.forEach(p=>{const hasCon=daftarBulan.some(b=>prodiHasConflictInBulan(p.id,b));const btn=document.createElement('button');btn.className="relative bg-white p-6 rounded-xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition text-left flex flex-col justify-between";btn.onclick=()=>openSchedule(p);btn.innerHTML=`${hasCon?'<span class="conflict-dot" title="Ada bentrok!"></span>':''}<div class="text-2xl font-bold text-gray-800 mb-2">${p.name}</div><div class="text-sm text-gray-500 flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-500"></i> ${p.defaultRoom}</div>${hasCon?'<div class="text-xs text-red-500 font-bold mt-2 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> Ada bentrok jadwal</div>':''}`;con.appendChild(btn);});}
 function openSchedule(p){currentProdi=p;fetchProdiSchedule(p.id).then(()=>{document.getElementById('scheduleModal').classList.remove('hidden');renderScheduleTable();}).catch(e=>console.error(e));}
 function closeSchedule(){document.getElementById('scheduleModal').classList.add('hidden');currentProdi=null;scheduleData={};}
@@ -575,7 +623,9 @@ function buildTableContent(prodi,bulan,wrapper){
     const defRoom=getActiveRoom(prodi.defaultRoom,bulan);
     if(!scheduleData[bulan])scheduleData[bulan]={};
     let weeks=Object.keys(scheduleData[bulan]);
-    weeks.sort((a,b)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(b));
+    
+    weeks.sort((a,b)=>romawi.indexOf(a)-romawi.indexOf(b));
+    
     if(!weeks.length){getDefaultWeeksForMonth(bulan).forEach(w=>{scheduleData[bulan][w]={};});weeks=[...getDefaultWeeksForMonth(bulan)];}
     weeks.forEach(minggu=>{
         if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};
@@ -632,15 +682,23 @@ function buildTableContent(prodi,bulan,wrapper){
     });
 }
 function renderScheduleTable(){const wr=document.getElementById('tableWrapper');wr.innerHTML='';if(!currentProdi)return;const bulan=document.getElementById('monthSelector').value;document.getElementById('scheduleTitle').innerText=`JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}`;buildTableContent(currentProdi,bulan,wr);}
-function addWeek(){const b=document.getElementById('monthSelector').value;if(!scheduleData[b])scheduleData[b]={};const wk=Object.keys(scheduleData[b]);if(wk.length>=listMingguRomawi.length)return;let mx=-1;wk.forEach(w=>{const i=listMingguRomawi.indexOf(w);if(i>mx)mx=i;});const nx=listMingguRomawi[mx+1];scheduleData[b][nx]={};saveData();renderScheduleTable();}
-function removeWeek(){const b=document.getElementById('monthSelector').value;const wk=Object.keys(scheduleData[b]||{});if(wk.length<=1)return;wk.sort((a,c)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(c));const last=wk[wk.length-1];if(confirm(`Hapus Minggu Ke-${last}?`)){delete scheduleData[b][last];saveData();renderScheduleTable();}}
+function addWeek(){
+    const b=document.getElementById('monthSelector').value;if(!scheduleData[b])scheduleData[b]={};const wk=Object.keys(scheduleData[b]);
+    if(wk.length>=romawi.length)return;
+    let mx=-1;wk.forEach(w=>{const i=romawi.indexOf(w);if(i>mx)mx=i;});
+    const nx=romawi[mx+1];if(nx){scheduleData[b][nx]={};saveData();renderScheduleTable();}
+}
+function removeWeek(){
+    const b=document.getElementById('monthSelector').value;const wk=Object.keys(scheduleData[b]||{});if(wk.length<=1)return;
+    wk.sort((a,c)=>romawi.indexOf(a)-romawi.indexOf(c));const last=wk[wk.length-1];
+    if(confirm(`Hapus Minggu Ke-${last}?`)){delete scheduleData[b][last];saveData();renderScheduleTable();}
+}
 
 function openEditModal(bulan,minggu,sesi,hari,cell,dateStr){
     currentEditCell={bulan,minggu,sesi,hari};
     document.getElementById('editTitle').innerText=`Isi Jadwal: ${hari} (${dateStr}), Minggu ${minggu} – Sesi ${sesi}`;
     updateDropdowns();
     document.getElementById('editMateri').value=cell.materi||'';
-    // Update instruktur filter based on materi
     updateInstrukturDropdown(cell.materi||'', cell.instruktur||'');
     document.getElementById('editRuang').value=cell.ruang||'';
     document.getElementById('editFullDay').checked=cell.isFullDay||false;
@@ -660,11 +718,37 @@ function openPrintModal(){const cur=document.getElementById('monthSelector').val
 function closePrintModal(){document.getElementById('printModal').classList.add('hidden');}
 let allSelected=false;
 function toggleAllPrintMonths(){allSelected=!allSelected;document.querySelectorAll('.print-month-cb').forEach(c=>c.checked=allSelected);}
-function executePrint(){const months=Array.from(document.querySelectorAll('.print-month-cb:checked')).map(c=>c.value);if(!months.length){alert('Pilih minimal 1 bulan!');return;}closePrintModal();const wrapper=document.getElementById('tableWrapper');wrapper.innerHTML='';months.forEach(bulan=>{const container=document.createElement('div');container.className='print-container';const title=`<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}</h2>`;container.innerHTML=title;buildTableContent(currentProdi,bulan,container);wrapper.appendChild(container);});document.getElementById('scheduleTitle').classList.add('no-print');setTimeout(()=>{window.print();setTimeout(()=>{document.getElementById('scheduleTitle').classList.remove('no-print');renderScheduleTable();},500);},300);}
 
-// ============================================================
-// CHATBOT FUNGSI (JAARVIS DEO)
-// ============================================================
+function executePrint(){
+    const months=Array.from(document.querySelectorAll('.print-month-cb:checked')).map(c=>c.value);
+    if(!months.length){alert('Pilih minimal 1 bulan!');return;}
+    closePrintModal();
+    const wrapper=document.getElementById('tableWrapper');
+    wrapper.innerHTML='';
+    const isSymmetric = document.getElementById('printSymmetric').checked;
+    const fontClass = document.getElementById('printFontSize').value;
+    document.body.classList.remove('print-simetris', 'print-auto', 'font-print-sm', 'font-print-md', 'font-print-lg');
+    document.body.classList.add(isSymmetric ? 'print-simetris' : 'print-auto');
+    document.body.classList.add(fontClass);
+    months.forEach(bulan=>{
+        const container=document.createElement('div');
+        container.className='print-container';
+        const title=`<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}</h2>`;
+        container.innerHTML=title;
+        buildTableContent(currentProdi,bulan,container);
+        wrapper.appendChild(container);
+    });
+    document.getElementById('scheduleTitle').classList.add('no-print');
+    setTimeout(()=>{
+        window.print();
+        setTimeout(()=>{
+            document.getElementById('scheduleTitle').classList.remove('no-print');
+            document.body.classList.remove('print-simetris', 'print-auto', 'font-print-sm', 'font-print-md', 'font-print-lg');
+            renderScheduleTable();
+        },500);
+    },300);
+}
+
 function randomEmoji(){const e=['🤖','😄','🎉','✨','🌟','💬','🤗','🙌','💡','🔥','⭐','🍕','🎈','😎','👻','🐱','🦄','🚀'];return e[Math.floor(Math.random()*e.length)];}
 function updateAvatarEmoji(){const a=document.getElementById('avatarEmoji');if(a)a.innerText=randomEmoji();}
 function getRandomGreeting(){const g=[`Halo! Saya Jaarvis Deo ${randomEmoji()} asisten pribadi kamoeh. Ada yang bisa dibantu?`,`Hey! Jaarvis Deo siap membantu ${randomEmoji()} Tanyakan soal jadwal yuk!`,`${randomEmoji()} Hallo! Saya Jaarvis Deo. Kamu butuh info jadwal?`,`Jaarvis Deo di sini ${randomEmoji()} Silakan pilih pertanyaan di bawah ya!`];return g[Math.floor(Math.random()*g.length)];}
@@ -676,7 +760,36 @@ function extractSesi(low){const m=low.match(/sesi\s*([1-7]|i{1,3}v?|vi{0,3}|iv|v
 function extractMateriName(low){const m=low.match(/(?:materi|pelajaran)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return m?m[1].trim():null;}
 function extractInstrukturName(low){const m=low.match(/(?:instruktur|pengajar|guru|diajar oleh)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return m?m[1].trim():null;}
 function extractRuangName(low){const m=low.match(/(?:ruang|kelas|ruangan)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return m?m[1].trim():null;}
-function getAllJadwalFlat(pid){const sd=allProdiSchedules[pid]||{};let rows=[];for(const b in sd)for(const m in sd[b]){const mon=getMondayForWeek(b,m);for(const s in sd[b][m])for(const h in sd[b][m][s]){const c=sd[b][m][s][h];if(!c?.materi)continue;const hi=daftarHari.indexOf(h);const d=new Date(mon);d.setDate(d.getDate()+hi);const tgl=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;const so=strukturWaktu.find(w=>w.sesi===s);rows.push({bulan:b,minggu:m,sesi:s,hari:h,materi:c.materi,instruktur:c.instruktur||'',ruang:c.ruang||'',isLibur:c.isLibur,prodi:pid,tgl,jam:so?.jam||''});}}rows.sort((a,b)=>{const bi=daftarBulan.indexOf(a.bulan)-daftarBulan.indexOf(b.bulan);if(bi!==0)return bi;const mi=listMingguRomawi.indexOf(a.minggu)-listMingguRomawi.indexOf(b.minggu);if(mi!==0)return mi;return strukturWaktu.findIndex(w=>w.sesi===a.sesi)-strukturWaktu.findIndex(w=>w.sesi===b.sesi);});return rows;}
+
+function getAllJadwalFlat(pid){
+    const sd=allProdiSchedules[pid]||{};
+    let rows=[];
+    for(const b in sd) {
+        for(const m in sd[b]){
+            const mon=getMondayForWeek(b,m);
+            for(const s in sd[b][m]) {
+                for(const h in sd[b][m][s]){
+                    const c=sd[b][m][s][h];
+                    if(!c?.materi)continue;
+                    const hi=daftarHari.indexOf(h);
+                    const d=new Date(mon);d.setDate(d.getDate()+hi);
+                    const tgl=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+                    const so=strukturWaktu.find(w=>w.sesi===s);
+                    rows.push({bulan:b,minggu:m,sesi:s,hari:h,materi:c.materi,instruktur:c.instruktur||'',ruang:c.ruang||'',isLibur:c.isLibur,prodi:pid,tgl,jam:so?.jam||''});
+                }
+            }
+        }
+    }
+    // Bug Fix Chatbot: Menggunakan array 'romawi' global
+    rows.sort((a,b)=>{
+        const bi=daftarBulan.indexOf(a.bulan)-daftarBulan.indexOf(b.bulan);
+        if(bi!==0)return bi;
+        const mi=romawi.indexOf(a.minggu)-romawi.indexOf(b.minggu);
+        if(mi!==0)return mi;
+        return strukturWaktu.findIndex(w=>w.sesi===a.sesi)-strukturWaktu.findIndex(w=>w.sesi===b.sesi);
+    });
+    return rows;
+}
 function getAllJadwalFlatForProdiList(pl){let all=[];for(let p of pl)all.push(...getAllJadwalFlat(p.id));return all;}
 function formatRow(r,prodi,bulan){const ruang=r.ruang&&r.ruang!=='-'?r.ruang:getActiveRoom(prodi?.defaultRoom||'',bulan||r.bulan);let line=`<b>${r.hari}</b> (${r.tgl}) · Sesi ${r.sesi} <span style="color:#6b7280;font-size:.8rem">${r.jam}</span><br>`;line+=`&nbsp;&nbsp;📚 <b>${r.materi}</b>`;if(r.instruktur)line+=` &nbsp;👤 ${r.instruktur}`;if(ruang)line+=` &nbsp;🚪 ${ruang}`;if(r.isLibur)line+=` &nbsp;<span style="color:#ef4444;font-weight:bold">🔴 LIBUR</span>`;return line;}
 function chipsHTML(list){return '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">'+list.map(c=>`<span class="chip" onclick="quickReply('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('')+'</div>';}
@@ -699,9 +812,27 @@ function showWelcome(){updateAvatarEmoji();const list=["📅 Jadwal GS 1 hari Se
 function addBotMsg(html){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot';d.innerHTML=html;b.appendChild(d);b.scrollTop=b.scrollHeight;updateAvatarEmoji();}
 function addUserMsg(txt){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-user';d.textContent=txt;b.appendChild(d);b.scrollTop=b.scrollHeight;}
 function addTyping(){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot chat-typing';d.id='chat-typing';d.innerHTML='<span></span><span></span><span></span>';b.appendChild(d);b.scrollTop=b.scrollHeight;return d;}
-function sendChatMessage(){const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg)return;inp.value='';addUserMsg(msg);const t=addTyping();setTimeout(()=>{t.remove();const reply=processLocalChat(msg);addBotMsg(reply);},400);}
+function sendChatMessage(){
+    const inp=document.getElementById('chatInput');
+    const msg=inp.value.trim();
+    if(!msg)return;
+    inp.value='';
+    addUserMsg(msg);
+    const t=addTyping();
+    setTimeout(()=>{
+        t.remove();
+        try {
+            const reply=processLocalChat(msg);
+            addBotMsg(reply);
+        } catch (e) {
+            console.error("Chatbot Error:", e);
+            addBotMsg("⚠️ Waduh, sistemku lagi error nih untuk membaca data jadwal (bug internal).");
+        }
+    },400);
+}
 document.addEventListener('click',function(e){const c=document.getElementById('chatbotContainer');const btn=document.getElementById('chatbotBtn');if(!c||!btn)return;const isOpen=!c.classList.contains('scale-0');if(isOpen&&!c.contains(e.target)&&!btn.contains(e.target)){c.classList.add('scale-0');c.classList.remove('scale-100');}});
-window.onload=async()=>{await fetchMaster();await fetchAllProdiSchedules();subscribeAllProdi();document.getElementById('monthSelector').innerHTML=daftarBulan.map(b=>`<option value="${b}">${b}</option>`).join('');};
+
+window.onload = async () => { await fetchMaster(); await fetchAllProdiSchedules(); subscribeAllProdi(); };
 </script>
 </body>
 </html>
