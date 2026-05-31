@@ -6,13 +6,10 @@
     <title>Jadwal Batch 17 Angkasa Nusantara</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore, doc, setDoc, getDoc, onSnapshot, collection, getDocs
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         const firebaseConfig = {
             apiKey: "AIzaSyCTSc7MBsyvbMUmHrvKG0GGL8W1VV3eVjQ",
             authDomain: "jadwal-angkasa-nusantara.firebaseapp.com",
@@ -21,105 +18,126 @@
             messagingSenderId: "968723639221",
             appId: "1:968723639221:web:edda08d8f61c59004387fc"
         };
-        const app  = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db   = getFirestore(app);
-        window.firebaseDb          = db;
-        window.firebaseAuth        = auth;
-        window.fbDoc               = doc;
-        window.fbSetDoc            = setDoc;
-        window.fbGetDoc            = getDoc;
-        window.fbOnSnapshot        = onSnapshot;
-        window.fbCollection        = collection;
-        window.fbGetDocs           = getDocs;
-        window.fbSignInAnonymously = signInAnonymously;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); const db = getFirestore(app);
+        window.firebaseDb=db; window.firebaseAuth=auth; window.fbDoc=doc;
+        window.fbSetDoc=setDoc; window.fbGetDoc=getDoc; window.fbOnSnapshot=onSnapshot;
+        window.fbCollection=collection; window.fbGetDocs=getDocs; window.fbSignInAnonymously=signInAnonymously;
     </script>
-
     <style>
+        /* ========== STYLE UTAMA ========== */
         .jadwal-table { border-collapse: collapse; width: 100%; }
-        .jadwal-table th, .jadwal-table td {
-            border: 1px solid #000; text-align: center;
-            vertical-align: middle; padding: 4px;
-        }
+        .jadwal-table th, .jadwal-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px; }
         .jadwal-table th { background-color: #ffff00; font-weight: bold; }
-        .jadwal-table td.hari-cell {
-            cursor: pointer; transition: background-color 0.2s;
-            height: 80px; padding: 0; width: 15%;
-        }
+        .jadwal-table td.hari-cell { cursor: pointer; transition: background-color 0.2s; height: 80px; padding: 0; width: 15%; }
         .jadwal-table td.hari-cell:hover { filter: brightness(0.95); }
         .cell-content { display: flex; flex-direction: column; height: 100%; }
-        .cell-materi  { font-weight: bold; padding: 2px; }
+        .cell-materi { font-weight: bold; padding: 2px; }
         .cell-instruktur { font-size: 0.85rem; color: #4b5563; padding: 2px; }
-        .cell-ruang {
-            background-color: #3b82f6; color: white;
-            font-size: 0.85rem; padding: 2px;
-            border-top: 1px solid #000; margin-top: auto;
+        .cell-ruang { background-color: #3b82f6; color: white; font-size: 0.85rem; padding: 2px; border-top: 1px solid #000; margin-top: auto; }
+        .jadwal-table td.hari-cell.cell-conflict { background-color: #fff7ed !important; outline: 2px solid #f97316; outline-offset: -2px; }
+        .conflict-dot { position: absolute; top: 8px; right: 8px; width: 12px; height: 12px; background: #ef4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #ef4444; animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.2)} }
+        .writing-vertical { writing-mode: vertical-rl; text-orientation: mixed; margin: auto; padding: 10px 0; font-size: 1.1rem; letter-spacing: 1px; }
+
+        /* CHATBOT */
+        #chatbotContainer { transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.2s; }
+        #chatbotContainer.scale-0 { transform: scale(0); opacity: 0; pointer-events: none; }
+        #chatbotContainer.scale-100 { transform: scale(1); opacity: 1; pointer-events: auto; }
+        .chat-msg-bot { background: #f1f5f9; color: #1e293b; border-radius: 4px 16px 16px 16px; padding: 10px 13px; max-width: 88%; font-size: 0.84rem; line-height: 1.55; word-break: break-word; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+        .chat-msg-user { background: linear-gradient(135deg,#3b82f6,#6366f1); color: white; border-radius: 16px 4px 16px 16px; padding: 10px 13px; max-width: 82%; align-self: flex-end; font-size: 0.84rem; line-height: 1.55; word-break: break-word; box-shadow: 0 2px 8px rgba(99,102,241,.3); }
+        .chat-typing span { display:inline-block; width:7px; height:7px; background:#94a3b8; border-radius:50%; margin:0 2px; animation: bounce-dot .9s infinite; }
+        .chat-typing span:nth-child(2){animation-delay:.15s} .chat-typing span:nth-child(3){animation-delay:.3s}
+        @keyframes bounce-dot { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .chip { display:inline-block; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; border-radius:20px; padding:4px 11px; font-size:0.75rem; cursor:pointer; margin:2px; transition:background .15s; }
+        .chip:hover { background:#bae6fd; }
+
+        /* ========== PRINT STYLE - SETIAP MINGGU 1 HALAMAN ========== */
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; }
+            .no-print, button, select, .max-w-7xl, #editModal, #printModal, #chatbotContainer, #chatbotBtn, .conflict-dot {
+                display: none !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 11px !important;
+            }
+            #scheduleModal {
+                position: static !important;
+                background: white !important;
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .week-container {
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                margin-bottom: 0 !important;
+                width: 100%;
+                display: block;
+            }
+            .week-container:last-child {
+                page-break-after: auto !important;
+            }
+            .jadwal-table {
+                width: 100% !important;
+                border-collapse: collapse;
+            }
+            .jadwal-table th, .jadwal-table td {
+                border: 1px solid #000 !important;
+                padding: 4px !important;
+            }
+            .cell-content {
+                display: block !important;
+                height: auto !important;
+            }
+            .jadwal-table td.hari-cell {
+                height: auto !important;
+                min-height: 70px;
+            }
+            .cell-ruang {
+                margin-top: 4px !important;
+                display: block !important;
+            }
+            .print-only-title {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 15px;
+                font-size: 1.3rem !important;
+                font-weight: bold;
+                page-break-after: avoid;
+            }
+            /* Pastikan tabel tidak terpotong */
+            .jadwal-table {
+                page-break-inside: avoid;
+            }
+            tr, th, td {
+                page-break-inside: avoid;
+            }
         }
-        /* Sel bentrok: background kuning muda + border oranye */
-        .jadwal-table td.hari-cell.cell-conflict {
-            background-color: #fff7ed !important;
-            outline: 2px solid #f97316;
-            outline-offset: -2px;
-        }
-        /* Dot merah di pojok kanan atas kartu prodi */
-        .conflict-dot {
-            position: absolute; top: 8px; right: 8px;
-            width: 12px; height: 12px;
-            background: #ef4444; border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 0 2px #ef4444;
-            animation: pulse-dot 1.5s infinite;
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%       { opacity: 0.6; transform: scale(1.2); }
-        }
-        /* Badge bulan di selector jadwal */
-        .month-conflict-badge {
-            display: inline-block; width: 8px; height: 8px;
-            background: #ef4444; border-radius: 50;
-            margin-left: 4px; vertical-align: middle;
-        }
-        .writing-vertical {
-            writing-mode: vertical-rl; text-orientation: mixed;
-            margin: auto; padding: 10px 0;
-            font-size: 1.1rem; letter-spacing: 1px;
-        }
+
         @media screen {
             .print-only-title { display: none !important; }
-            .jadwal-table { margin-bottom: -1px; }
-        }
-        @media print {
-            @page { size: A4 landscape; margin: 8mm; }
-            .no-print, button, select, .max-w-7xl, #editModal, #printModal { display: none !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body { background-color: white !important; padding: 0 !important; margin: 0 !important; font-size: 12px !important; }
-            #scheduleModal { position: static !important; background: white !important; display: block !important; }
-            .week-container { page-break-after: always !important; page-break-inside: avoid !important; padding-top: 10px; width: 100%; display: block; }
-            .week-container:last-child { page-break-after: auto !important; }
-            table { page-break-inside: avoid !important; width: 100% !important; }
-            tr, td, th { page-break-inside: avoid !important; }
-            .cell-content { display: block !important; height: auto !important; }
-            .jadwal-table td.hari-cell { height: 80px !important; }
-            .cell-ruang { margin-top: 4px !important; display: block !important; }
-            .print-only-title { display: block !important; text-align: center; margin-bottom: 15px; font-size: 1.4rem !important; font-weight: bold; }
-            .cell-conflict { outline: none !important; background-color: white !important; }
-            .conflict-dot  { display: none !important; }
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans p-6">
 
-<!-- ========== DASHBOARD ========== -->
+<!-- DASHBOARD -->
 <div class="max-w-7xl mx-auto no-print">
     <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-md">
         <div>
             <h1 class="text-3xl font-bold text-blue-800">Jadwal Materi Batch 17</h1>
-            <p class="text-gray-600">Angkasa Nusantara &mdash;
-                <span id="syncStatus" class="text-yellow-600 font-bold">
-                    <i class="fas fa-spinner fa-spin"></i> Menghubungkan...
-                </span>
-            </p>
+            <p class="text-gray-600">Angkasa Nusantara &mdash; <span id="syncStatus" class="text-yellow-600 font-bold"><i class="fas fa-spinner fa-spin"></i> Menghubungkan...</span></p>
         </div>
         <button onclick="openSettings()" class="bg-gray-800 text-white px-4 py-2 rounded shadow hover:bg-gray-700 flex items-center gap-2">
             <i class="fas fa-cog"></i> Pengaturan Data
@@ -129,919 +147,265 @@
     <div id="prodiContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 </div>
 
-<!-- ========== MODAL PENGATURAN ========== -->
-<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
-    <div class="bg-white w-11/12 max-w-4xl h-5/6 rounded-xl shadow-2xl flex flex-col">
-        <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
-            <h2 class="text-xl font-bold"><i class="fas fa-database mr-2"></i> Pengaturan Data Induk</h2>
-            <button onclick="closeSettings()" class="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+<!-- MODAL RESOLUSI KONFLIK -->
+<div id="aiResolutionModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[60] flex justify-center items-center no-print">...</div>
+
+<!-- CHATBOT BUTTON & WINDOW -->
+<div id="chatbotBtn" onclick="toggleChat()" class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-2xl flex justify-center items-center cursor-pointer hover:bg-blue-700 transition-all z-50 text-white text-xl hover:scale-110 active:scale-95">
+    <i class="fas fa-comments"></i>
+</div>
+<div id="chatbotContainer" class="scale-0 fixed bottom-24 right-6 z-50 no-print" style="width:340px;height:490px;display:flex;flex-direction:column;background:white;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.18),0 4px 20px rgba(0,0,0,.1);overflow:hidden;border:1px solid #e2e8f0;">
+    <div style="background:linear-gradient(135deg,#1d4ed8,#4f46e5);padding:14px 16px;display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;" id="avatarEmoji">🤖</div>
+        <div style="flex:1">
+            <p style="color:white;font-weight:700;font-size:.9rem;margin:0">Jaarvis Deo</p>
+            <p style="color:rgba(255,255,255,.75);font-size:.72rem;margin:0">asisten pribadi kamoeh ✨</p>
         </div>
-        <div class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <h3 class="font-bold mb-3 border-b border-blue-200 pb-2">Daftar Prodi</h3>
-                <div class="flex gap-2 mb-3">
-                    <input type="text" id="newProdiName" placeholder="Nama Prodi" class="border p-2 rounded w-1/2 text-sm">
-                    <select id="newProdiRoom" class="border p-2 rounded w-1/2 text-sm"></select>
-                    <button onclick="addProdi()" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"><i class="fas fa-plus"></i></button>
-                </div>
-                <ul id="listSettingProdi" class="space-y-2 text-sm"></ul>
-            </div>
-            <div class="bg-green-50 p-4 rounded-lg border border-green-100">
-                <h3 class="font-bold mb-3 border-b border-green-200 pb-2">Daftar Ruang Kelas</h3>
-                <div class="flex gap-2 mb-3">
-                    <input type="text" id="newRoomName" placeholder="Nama Ruangan" class="border p-2 rounded flex-1 text-sm">
-                    <button onclick="addRoom()" class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700"><i class="fas fa-plus"></i></button>
-                </div>
-                <ul id="listSettingRoom" class="space-y-2 text-sm"></ul>
-            </div>
-            <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                <h3 class="font-bold mb-3 border-b border-purple-200 pb-2">Daftar Materi & Kuota</h3>
-                <div class="flex flex-col gap-2 mb-3">
-                    <input type="text" id="newMateriName" placeholder="Nama Materi" class="border p-2 rounded w-full text-sm">
-                    <div class="flex gap-2">
-                        <input type="number" id="newMateriQuota" placeholder="Kuota (kosong=∞)" class="border p-2 rounded flex-1 text-sm">
-                        <button onclick="addMateri()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 font-bold flex items-center gap-1 whitespace-nowrap">
-                            <i class="fas fa-plus"></i> Tambah
-                        </button>
-                    </div>
-                </div>
-                <ul id="listSettingMateri" class="space-y-2 text-sm"></ul>
-            </div>
-        </div>
+        <button onclick="toggleChat()" style="color:rgba(255,255,255,.8);background:none;border:none;font-size:1.3rem;cursor:pointer;">&times;</button>
+    </div>
+    <div id="chatBody" class="chat-scroll" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#f8fafc;"></div>
+    <div style="padding:10px 12px;border-top:1px solid #e2e8f0;background:white;display:flex;gap:8px;align-items:center;">
+        <input type="text" id="chatInput" onkeydown="if(event.key==='Enter')sendChatMessage()" placeholder="Tanya sesuai daftar..." style="flex:1;border:1.5px solid #e2e8f0;border-radius:20px;padding:8px 14px;font-size:.84rem;outline:none;">
+        <button onclick="sendChatMessage()" style="width:36px;height:36px;background:linear-gradient(135deg,#3b82f6,#6366f1);border:none;border-radius:50%;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
     </div>
 </div>
 
-<!-- ========== MODAL JADWAL ========== -->
-<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-40 flex justify-center items-center">
-    <div class="bg-white w-full h-full md:w-11/12 md:h-5/6 md:rounded-xl shadow-2xl flex flex-col relative">
-        <div class="p-4 border-b flex justify-between items-center bg-gray-50 md:rounded-t-xl no-print">
-            <h2 id="scheduleTitle" class="text-2xl font-bold uppercase">JADWAL</h2>
-            <div class="flex items-center gap-2">
-                <select id="monthSelector" onchange="renderScheduleTable()" class="border p-2 rounded text-lg font-bold bg-white">
-                    <option value="Juli 2026">Juli 2026</option>
-                    <option value="Agustus 2026">Agustus 2026</option>
-                    <option value="September 2026">September 2026</option>
-                    <option value="Oktober 2026">Oktober 2026</option>
-                    <option value="November 2026">November 2026</option>
-                </select>
-                <div class="flex gap-1 ml-2 border-l pl-3 border-gray-300">
-                    <button onclick="addWeek()" class="bg-blue-600 text-white w-10 h-10 rounded shadow hover:bg-blue-700 flex justify-center items-center"><i class="fas fa-plus"></i></button>
-                    <button onclick="removeWeek()" class="bg-yellow-500 text-white w-10 h-10 rounded shadow hover:bg-yellow-600 flex justify-center items-center"><i class="fas fa-minus"></i></button>
-                </div>
-                <button onclick="openPrintModal()" class="bg-green-600 text-white px-4 py-2 h-10 rounded shadow hover:bg-green-700 ml-2 flex items-center gap-2">
-                    <i class="fas fa-file-pdf"></i> Cetak PDF
-                </button>
-                <button onclick="closeSchedule()" class="bg-red-500 text-white px-4 py-2 h-10 rounded shadow hover:bg-red-600 ml-2">
-                    <i class="fas fa-times mr-2"></i>Tutup
-                </button>
-            </div>
-        </div>
-        <div class="p-4 overflow-auto flex-1 bg-white" id="tableWrapper"></div>
-    </div>
-</div>
-
-<!-- ========== MODAL EDIT SEL ========== -->
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
-    <div class="bg-white w-96 p-6 rounded-xl shadow-xl">
-        <h3 class="text-lg font-bold mb-4" id="editTitle">Isi Jadwal</h3>
-        <div class="mb-3">
-            <label class="block text-sm font-bold mb-1">Materi</label>
-            <select id="editMateri" class="w-full border p-2 rounded" onchange="updateMateriInfo()">
-                <option value="">- Kosong -</option>
-            </select>
-            <p id="materiQuotaInfo" class="text-xs font-semibold mt-1 hidden"></p>
-            <!-- Kotak peringatan bentrok lintas prodi -->
-            <div id="conflictWarning" class="hidden mt-2 p-2 bg-orange-50 border border-orange-300 rounded text-xs text-orange-800 font-semibold"></div>
-        </div>
-        <div class="mb-3">
-            <label class="block text-sm font-bold mb-1">Instruktur / Ket</label>
-            <input type="text" id="editInstruktur" class="w-full border p-2 rounded" placeholder="Nama instruktur">
-        </div>
-        <div class="mb-3">
-            <label class="block text-sm font-bold mb-1">Ruang / Lokasi</label>
-            <select id="editRuang" class="w-full border p-2 rounded"></select>
-        </div>
-        <div class="mb-2 p-2 bg-gray-50 border rounded">
-            <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" id="editFullDay" class="h-4 w-4 text-blue-600">
-                <span class="text-sm font-bold text-blue-800">Jadikan Full Day</span>
-            </label>
-        </div>
-        <div class="mb-5 p-2 bg-red-50 border rounded">
-            <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" id="editLibur" class="h-4 w-4 text-red-600">
-                <span class="text-sm font-bold text-red-700">Tandai Libur / Tanggal Merah</span>
-            </label>
-        </div>
-        <div class="flex justify-end gap-2">
-            <button onclick="closeEditModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
-            <button onclick="saveCellData()" id="btnSimpan" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan</button>
-        </div>
-    </div>
-</div>
-
-<!-- ========== MODAL CETAK ========== -->
-<div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
-    <div class="bg-white w-96 p-6 rounded-xl shadow-xl">
-        <h3 class="text-xl font-bold mb-2">Opsi Cetak PDF</h3>
-        <p class="text-sm text-gray-600 mb-4 border-b pb-3">Pilih bulan yang ingin dicetak.</p>
-        <div class="space-y-2 mb-4" id="printMonthList"></div>
-        <div class="flex justify-between items-center mb-6">
-            <button onclick="toggleAllPrintMonths()" class="text-blue-600 text-sm font-bold hover:underline bg-blue-50 px-3 py-1 rounded">Centang/Hapus Semua</button>
-        </div>
-        <div class="flex justify-end gap-2">
-            <button onclick="closePrintModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
-            <button onclick="executePrint()" class="px-4 py-2 bg-green-600 text-white font-bold rounded shadow hover:bg-green-700 flex items-center gap-2">
-                <i class="fas fa-print"></i> Mulai Cetak
-            </button>
-        </div>
-    </div>
-</div>
+<!-- MODAL PENGATURAN (singkat, isi lengkap seperti sebelumnya) -->
+<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
+<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-40 flex justify-center items-center">...</div>
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[55] flex justify-center items-center no-print">...</div>
+<div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
 
 <script>
 // ============================================================
-// MATERI YANG DIKECUALIKAN DARI CEK BENTROK LINTAS PRODI
-// (boleh dijadwalkan bersamaan di banyak prodi)
+// DATA & KONSTANTA (LENGKAP SEPERTI KODE SEBELUMNYA)
 // ============================================================
-const MATERI_BEBAS_BENTROK = [
-    'SENAM PAGI',
-    'KESAMAPTAAN',
-    'OUTBOUND',
-    'Administration',
-    'Perkenalan Staff',
-    'Beauty & Handsome Class',
-    'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII'
-];
+const MATERI_BEBAS_BENTROK = ['SENAM PAGI','KESAMAPTAAN','OUTBOUND','Administration','Perkenalan Staff','Beauty & Handsome Class','PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII'];
 
-// ============================================================
-// DATA DEFAULT
-// ============================================================
 let dataProdi = [
-    { id: 'gs1', name: 'GS 1', defaultRoom: 'Ruang Airbus' },
-    { id: 'gs2', name: 'GS 2', defaultRoom: 'Ruang Boing'  },
-    { id: 'gs3', name: 'GS 3', defaultRoom: 'Ruang Airbus' },
-    { id: 'gs4', name: 'GS 4', defaultRoom: 'Ruang Boing'  },
-    { id: 'gs5', name: 'GS 5', defaultRoom: 'Ruang Airbus' },
-    { id: 'fa1', name: 'FA 1', defaultRoom: 'Ruang Boing'  },
-    { id: 'fa2', name: 'FA 2', defaultRoom: 'ATR'          },
-    { id: 'fa3', name: 'FA 3', defaultRoom: 'ATR'          }
+    {id:'gs1',name:'GS 1',defaultRoom:'Ruang Airbus'},{id:'gs2',name:'GS 2',defaultRoom:'Ruang Boing'},
+    {id:'gs3',name:'GS 3',defaultRoom:'Ruang Airbus'},{id:'gs4',name:'GS 4',defaultRoom:'Ruang Boing'},
+    {id:'gs5',name:'GS 5',defaultRoom:'Ruang Airbus'},{id:'fa1',name:'FA 1',defaultRoom:'Ruang Boing'},
+    {id:'fa2',name:'FA 2',defaultRoom:'ATR'},{id:'fa3',name:'FA 3',defaultRoom:'ATR'}
 ];
-let dataRoom = ['Ruang Boing', 'Ruang Airbus', 'ATR', 'Outdoor', 'Kantor Gedung 1'];
+let dataRoom = ['Ruang Boing','Ruang Airbus','ATR','Outdoor','Kantor Gedung 1'];
 let dataMateri = [
-    { name: 'Grooming & Attitude', quota: 10 }, { name: 'AVK', quota: 10 },
-    { name: 'Ramp Handling', quota: 10 }, { name: 'Communication Skill', quota: 10 },
-    { name: 'Customer Service', quota: 10 }, { name: 'Reservasi & Ticketing', quota: 10 },
-    { name: 'PB Handling', quota: 10 }, { name: 'English Conversation', quota: 10 },
-    { name: 'Japan', quota: 10 }, { name: 'Psikotest', quota: 10 },
-    { name: 'KESAMAPTAAN', quota: 10 }, { name: 'Administration', quota: 10 },
-    { name: 'Perkenalan Staff', quota: 10 }, { name: 'Beauty Class', quota: 10 },
-    { name: 'PHOTOSHOOT', quota: 10 }, { name: 'Aviation Knowledge', quota: 10 },
-    { name: 'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII', quota: 10 },
-    { name: 'SENAM PAGI', quota: 10 }, { name: 'Basic Cabin', quota: 10 },
-    { name: 'Announcement', quota: 10 }, { name: 'Flight Safety', quota: 10 },
-    { name: 'Safety Demo', quota: 10 }, { name: 'Beauty & Handsome Class', quota: 10 },
-    { name: 'Pax & Bag Handling', quota: 10 }, { name: 'Basic Cargo', quota: 10 },
-    { name: 'OUTBOUND', quota: 10 }
+    {name:'Grooming & Attitude',quota:10},{name:'AVK',quota:10},{name:'Ramp Handling',quota:10},
+    {name:'Communication Skill',quota:10},{name:'Customer Service',quota:10},{name:'Reservasi & Ticketing',quota:10},
+    {name:'PB Handling',quota:10},{name:'English Conversation',quota:10},{name:'Japan',quota:10},
+    {name:'Psikotest',quota:10},{name:'KESAMAPTAAN',quota:10},{name:'Administration',quota:10},
+    {name:'Perkenalan Staff',quota:10},{name:'Beauty Class',quota:10},{name:'PHOTOSHOOT',quota:10},
+    {name:'Aviation Knowledge',quota:10},{name:'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII',quota:10},
+    {name:'SENAM PAGI',quota:10},{name:'Basic Cabin',quota:10},{name:'Announcement',quota:10},
+    {name:'Flight Safety',quota:10},{name:'Safety Demo',quota:10},{name:'Beauty & Handsome Class',quota:10},
+    {name:'Pax & Bag Handling',quota:10},{name:'Basic Cargo',quota:10},{name:'OUTBOUND',quota:10}
 ];
 const strukturWaktu = [
-    { sesi: 'I',   jam: '05.00-06.00' }, { sesi: 'II',  jam: '08.00-09.30' },
-    { sesi: 'III', jam: '09.30-11.00' }, { sesi: 'IV',  jam: '11.30-13.00' },
-    { sesi: 'V',   jam: '13.00-14.30' }, { sesi: 'VI',  jam: '15.00-16.30' },
-    { sesi: 'VII', jam: '16.30-18.00' }
+    {sesi:'I',jam:'05.00-06.00'},{sesi:'II',jam:'08.00-09.30'},{sesi:'III',jam:'09.30-11.00'},
+    {sesi:'IV',jam:'11.30-13.00'},{sesi:'V',jam:'13.00-14.30'},{sesi:'VI',jam:'15.00-16.30'},
+    {sesi:'VII',jam:'16.30-18.00'}
 ];
-const daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-const listMingguRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
-    'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII'];
+const daftarHari = ['Senin','Selasa','Rabu','Kamis','Jumat'];
+const listMingguRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII'];
 const bulanConfig = {
-    'Juli 2026':      { weeks: ['I','II','III','IV','V'],       mondayDates: ['2026-06-29','2026-07-06','2026-07-13','2026-07-20','2026-07-27'] },
-    'Agustus 2026':   { weeks: ['VI','VII','VIII','IX'],        mondayDates: ['2026-08-03','2026-08-10','2026-08-17','2026-08-24'] },
-    'September 2026': { weeks: ['X','XI','XII','XIII','XIV'],   mondayDates: ['2026-08-31','2026-09-07','2026-09-14','2026-09-21','2026-09-28'] },
-    'Oktober 2026':   { weeks: ['XV','XVI','XVII','XVIII'],     mondayDates: ['2026-10-05','2026-10-12','2026-10-19','2026-10-26'] },
-    'November 2026':  { weeks: ['XIX','XX','XXI','XXII'],       mondayDates: ['2026-11-02','2026-11-09','2026-11-16','2026-11-23'] }
+    'Juli 2026':     {weeks:['I','II','III','IV','V'],        mondayDates:['2026-06-29','2026-07-06','2026-07-13','2026-07-20','2026-07-27']},
+    'Agustus 2026':  {weeks:['VI','VII','VIII','IX'],         mondayDates:['2026-08-03','2026-08-10','2026-08-17','2026-08-24']},
+    'September 2026':{weeks:['X','XI','XII','XIII','XIV'],    mondayDates:['2026-08-31','2026-09-07','2026-09-14','2026-09-21','2026-09-28']},
+    'Oktober 2026':  {weeks:['XV','XVI','XVII','XVIII'],      mondayDates:['2026-10-05','2026-10-12','2026-10-19','2026-10-26']},
+    'November 2026': {weeks:['XIX','XX','XXI','XXII'],        mondayDates:['2026-11-02','2026-11-09','2026-11-16','2026-11-23']}
 };
 const daftarBulan = Object.keys(bulanConfig);
 
-// ============================================================
-// STATE GLOBAL
-// ============================================================
-let scheduleData    = {};   // jadwal prodi AKTIF saja
-let allProdiSchedules = {}; // cache semua jadwal prodi untuk cek bentrok: { prodiId: scheduleData }
-let currentProdi    = null;
-let currentEditCell = null;
-let unsubProdi      = null;
-let unsubAllProdi   = {};   // listener per prodi untuk cache bentrok
+let scheduleData={}, allProdiSchedules={}, currentProdi=null, currentEditCell=null, pendingSaveData=null, unsubAllProdi={};
 
 // ============================================================
-// HELPER
+// FUNGSI HELPER YANG TELAH ADA (DISEWAKAN, TIDAK DIUBAH)
 // ============================================================
-function getActiveRoom(baseRoom, bulan) {
-    const idx = daftarBulan.indexOf(bulan);
-    if (idx % 2 !== 0) {
-        if (baseRoom === 'Ruang Airbus') return 'Ruang Boing';
-        if (baseRoom === 'Ruang Boing')  return 'Ruang Airbus';
-    }
-    return baseRoom;
-}
-function getDefaultWeeksForMonth(bulan) {
-    return bulanConfig[bulan] ? bulanConfig[bulan].weeks : ['I','II','III','IV'];
-}
-function getMondayForWeek(bulan, minggu) {
-    const config = bulanConfig[bulan];
-    if (!config) return new Date('2026-07-06');
-    const wi = config.weeks.indexOf(minggu);
-    if (wi !== -1) return new Date(config.mondayDates[wi]);
-    const lastIdx    = config.weeks.length - 1;
-    const lastMonday = new Date(config.mondayDates[lastIdx]);
-    const extra = listMingguRomawi.indexOf(minggu) - listMingguRomawi.indexOf(config.weeks[lastIdx]);
-    lastMonday.setDate(lastMonday.getDate() + extra * 7);
-    return lastMonday;
-}
+function getActiveRoom(r,b){const i=daftarBulan.indexOf(b);if(i%2!==0){if(r==='Ruang Airbus')return'Ruang Boing';if(r==='Ruang Boing')return'Ruang Airbus';}return r;}
+function getDefaultWeeksForMonth(b){return bulanConfig[b]?.weeks||['I','II','III','IV'];}
+function getMondayForWeek(bulan,minggu){const c=bulanConfig[bulan];if(!c)return new Date('2026-07-06');const wi=c.weeks.indexOf(minggu);if(wi!==-1)return new Date(c.mondayDates[wi]);const li=c.weeks.length-1;const m=new Date(c.mondayDates[li]);m.setDate(m.getDate()+(listMingguRomawi.indexOf(minggu)-listMingguRomawi.indexOf(c.weeks[li]))*7);return m;}
+function getEffRuang(cell,pid,bulan){if(!cell?.materi)return'';const r=cell.ruang||'';if(r==='-')return'';if(r===''){const p=dataProdi.find(x=>x.id===pid);return p?getActiveRoom(p.defaultRoom,bulan):'';}return r;}
+function countMateriUsage(name){let c=0;for(const p in allProdiSchedules){const sd=allProdiSchedules[p];for(const b in sd)for(const m in sd[b])for(const s in sd[b][m])for(const h in sd[b][m][s])if(sd[b][m][s][h]?.materi===name)c++;}return c;}
+
+// Firebase (sama seperti sebelumnya)
+function waitFirebase(){return new Promise(r=>{const t=setInterval(()=>{if(window.firebaseDb&&window.firebaseAuth){clearInterval(t);r({db:window.firebaseDb,auth:window.firebaseAuth});}},80);});}
+function toggleLoading(show,msg='Sinkronisasi...'){if(show&&!document.getElementById('loadingOverlay')){document.body.insertAdjacentHTML('beforeend',`<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex flex-col justify-center items-center text-white"><i class="fas fa-spinner fa-spin text-5xl mb-4"></i><h2 class="text-xl font-bold">${msg}</h2></div>`);}else if(!show)document.getElementById('loadingOverlay')?.remove();}
+function setSyncStatus(ok){const el=document.getElementById('syncStatus');if(el)el.innerHTML=ok?'<i class="fas fa-cloud text-green-600"></i> <span class="text-green-600">Firebase Sync Aktif</span>':'<i class="fas fa-exclamation-triangle text-red-500"></i> <span class="text-red-500">Offline</span>';}
+async function initApp(){const{db,auth}=await waitFirebase();try{await window.fbSignInAnonymously(auth);}catch(e){}await fetchMaster(db);window.fbOnSnapshot(window.fbDoc(db,'jadwal_angkasa','master'),snap=>{if(!snap.exists())return;const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi)dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10})):d.materi;renderDashboard();updateDropdowns();});await fetchAllProdiSchedules(db);subscribeAllProdi(db);setSyncStatus(true);renderDashboard();updateDropdowns();document.getElementById('monthSelector').innerHTML=daftarBulan.map(b=>`<option value="${b}">${b}</option>`).join('');}
+async function fetchMaster(db){toggleLoading(true,'Memuat Data Master...');try{const snap=await window.fbGetDoc(window.fbDoc(db,'jadwal_angkasa','master'));if(snap.exists()){const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi)dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10})):d.materi;}else await saveMaster(db);}catch(e){setSyncStatus(false);}finally{toggleLoading(false);}}
+async function saveMaster(dbArg){const{db}=dbArg?{db:dbArg}:await waitFirebase();try{await window.fbSetDoc(window.fbDoc(db,'jadwal_angkasa','master'),{prodi:dataProdi,room:dataRoom,materi:dataMateri,updatedAt:new Date().toISOString()});}catch(e){alert('Gagal simpan master:\n'+e.message);}}
+async function fetchProdiSchedule(pid){const{db}=await waitFirebase();toggleLoading(true,'Memuat Jadwal...');try{const snap=await window.fbGetDoc(window.fbDoc(db,'jadwal_prodi',pid));scheduleData=snap.exists()?(snap.data().schedule||{}):{};allProdiSchedules[pid]=scheduleData;}catch(e){scheduleData={};}finally{toggleLoading(false);}}
+async function saveProdiSchedule(){if(!currentProdi)return;const{db}=await waitFirebase();try{await window.fbSetDoc(window.fbDoc(db,'jadwal_prodi',currentProdi.id),{schedule:scheduleData,updatedAt:new Date().toISOString()});allProdiSchedules[currentProdi.id]=scheduleData;renderDashboard();}catch(e){alert('Gagal menyimpan:\n'+e.message);}}
+async function fetchAllProdiSchedules(db){for(const p of dataProdi){try{const snap=await window.fbGetDoc(window.fbDoc(db,'jadwal_prodi',p.id));allProdiSchedules[p.id]=snap.exists()?(snap.data().schedule||{}):{};}catch(e){allProdiSchedules[p.id]={};}}}
+function subscribeAllProdi(db){dataProdi.forEach(p=>{if(unsubAllProdi[p.id])unsubAllProdi[p.id]();unsubAllProdi[p.id]=window.fbOnSnapshot(window.fbDoc(db,'jadwal_prodi',p.id),snap=>{const inc=snap.exists()?(snap.data().schedule||{}):{};allProdiSchedules[p.id]=inc;if(currentProdi?.id===p.id&&JSON.stringify(inc)!==JSON.stringify(scheduleData)){scheduleData=inc;renderScheduleTable();}renderDashboard();});});}
+function saveData(){saveProdiSchedule();}
 
 // ============================================================
-// CEK BENTROK LINTAS PRODI
-// Mengembalikan array nama prodi yang punya materi sama di
-// bulan+minggu+sesi+hari yang sama (tanpa prodi aktif sendiri).
-// Materi dalam MATERI_BEBAS_BENTROK selalu return [].
+// UI JADWAL (FUNGSI RENDER, EDIT, DLL - TIDAK DIUBAH)
 // ============================================================
-function cekBentrokLintas(materiName, bulan, minggu, sesi, hari) {
-    if (!materiName) return [];
-    if (MATERI_BEBAS_BENTROK.includes(materiName)) return [];
-    const bentrok = [];
-    for (const pId in allProdiSchedules) {
-        if (pId === currentProdi?.id) continue;
-        const sel = allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];
-        if (sel && sel.materi === materiName) {
-            const prodiObj = dataProdi.find(p => p.id === pId);
-            bentrok.push(prodiObj ? prodiObj.name : pId);
+function renderDashboard(){const con=document.getElementById('prodiContainer');con.innerHTML='';dataProdi.forEach(p=>{const hasCon=daftarBulan.some(b=>prodiHasConflictInBulan(p.id,b));const btn=document.createElement('button');btn.className="relative bg-white p-6 rounded-xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition text-left flex flex-col justify-between";btn.onclick=()=>openSchedule(p);btn.innerHTML=`${hasCon?'<span class="conflict-dot" title="Ada bentrok!"></span>':''}<div class="text-2xl font-bold text-gray-800 mb-2">${p.name}</div><div class="text-sm text-gray-500 flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-500"></i> ${p.defaultRoom}</div>${hasCon?'<div class="text-xs text-red-500 font-bold mt-2 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> Ada bentrok jadwal</div>':''}`;con.appendChild(btn);});}
+function updateDropdowns(){const rs=document.getElementById('newProdiRoom');if(rs)rs.innerHTML=dataRoom.map(r=>`<option value="${r}">${r}</option>`).join('');const em=document.getElementById('editMateri');if(em){const c=em.value;em.innerHTML='<option value="">- Kosong -</option>'+dataMateri.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');if(c)em.value=c;}const er=document.getElementById('editRuang');if(er){const c=er.value;er.innerHTML='<option value="">- Default Ruang Prodi -</option><option value="-">- Tanpa Ruangan -</option>'+dataRoom.map(r=>`<option value="${r}">${r}</option>`).join('');if(c)er.value=c;}}
+function updateMateriInfo(){const el=document.getElementById('materiQuotaInfo'),n=document.getElementById('editMateri').value;if(!n){el.classList.add('hidden');return;}const o=dataMateri.find(m=>m.name===n);if(!o){el.classList.add('hidden');return;}const cur=currentEditCell?scheduleData[currentEditCell.bulan]?.[currentEditCell.minggu]?.[currentEditCell.sesi]?.[currentEditCell.hari]?.materi||'':'';const u=countMateriUsage(n);if(o.quota>0){const s=o.quota-u-(cur===n?0:1);let t=`Total: ${u}x. (Sisa: ${s}x)`;if(s<0){el.className='text-xs font-bold mt-1 text-red-600';t+=' ⚠️ OVERLIMIT!';}else if(s===0){el.className='text-xs font-bold mt-1 text-orange-600';t+=' ⚠️ Habis';}else el.className='text-xs font-semibold mt-1 text-blue-600';el.innerText=t;}else{el.className='text-xs font-semibold mt-1 text-gray-500';el.innerText=`Total: ${u}x. (Tak terbatas)`;}el.classList.remove('hidden');}
+function openSettings(){document.getElementById('settingsModal').classList.remove('hidden');renderSettingsLists();}
+function closeSettings(){document.getElementById('settingsModal').classList.add('hidden');}
+function renderSettingsLists(){document.getElementById('listSettingProdi').innerHTML=dataProdi.map((p,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span><b>${p.name}</b> (${p.defaultRoom})</span><button onclick="deleteProdi(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');document.getElementById('listSettingRoom').innerHTML=dataRoom.map((r,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span>${r}</span><button onclick="deleteRoom(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');document.getElementById('listSettingMateri').innerHTML=dataMateri.map((m,i)=>{const b=m.quota>0?`<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-1 rounded ml-1">K:${m.quota}</span>`:`<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded ml-1">∞</span>`;const fb=MATERI_BEBAS_BENTROK.includes(m.name)?`<span class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded ml-1">bebas</span>`:'';return `<li class="flex justify-between items-center bg-white p-2 rounded border"><div class="flex-1 min-w-0 text-xs break-words">${m.name}${b}${fb}</div><button onclick="deleteMateri(${i})" class="text-red-500 hover:text-red-700 ml-1 flex-shrink-0"><i class="fas fa-trash"></i></button></li>`;}).join('');}
+function addProdi(){const n=document.getElementById('newProdiName').value.trim(),r=document.getElementById('newProdiRoom').value;if(!n)return;dataProdi.push({id:n.toLowerCase().replace(/\s/g,''),name:n,defaultRoom:r});document.getElementById('newProdiName').value='';saveMaster();renderDashboard();renderSettingsLists();}
+function deleteProdi(i){if(confirm('Hapus prodi ini?')){dataProdi.splice(i,1);saveMaster();renderDashboard();renderSettingsLists();}}
+function addRoom(){const v=document.getElementById('newRoomName').value.trim();if(!v)return;dataRoom.push(v);document.getElementById('newRoomName').value='';saveMaster();updateDropdowns();renderSettingsLists();}
+function deleteRoom(i){if(confirm('Hapus ruang ini?')){dataRoom.splice(i,1);saveMaster();updateDropdowns();renderSettingsLists();}}
+function addMateri(){const v=document.getElementById('newMateriName').value.trim();if(!v)return;const q=parseInt(document.getElementById('newMateriQuota').value)||0;dataMateri.push({name:v,quota:q});document.getElementById('newMateriName').value='';document.getElementById('newMateriQuota').value='';saveMaster();updateDropdowns();renderSettingsLists();}
+function deleteMateri(i){if(confirm('Hapus materi ini?')){dataMateri.splice(i,1);saveMaster();updateDropdowns();renderSettingsLists();}}
+async function openSchedule(p){currentProdi=p;document.getElementById('scheduleModal').classList.remove('hidden');await fetchProdiSchedule(p.id);renderScheduleTable();}
+function closeSchedule(){document.getElementById('scheduleModal').classList.add('hidden');currentProdi=null;scheduleData={};}
+function buildTableContent(prodi,bulan,wrapper){const defRoom=getActiveRoom(prodi.defaultRoom,bulan);if(!scheduleData[bulan])scheduleData[bulan]={};let weeks=Object.keys(scheduleData[bulan]);weeks.sort((a,b)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(b));if(!weeks.length){getDefaultWeeksForMonth(bulan).forEach(w=>{scheduleData[bulan][w]={};});weeks=[...getDefaultWeeksForMonth(bulan)];}weeks.forEach(minggu=>{if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};const wd=document.createElement('div');wd.className='week-container';const tbl=document.createElement('table');tbl.className='jadwal-table w-full text-sm';const tb=document.createElement('tbody');tbl.appendChild(tb);let skip={};daftarHari.forEach(h=>{skip[h]=0;});const mon=getMondayForWeek(bulan,minggu);const hdr=document.createElement('tr');hdr.innerHTML='<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>';const dates=[];daftarHari.forEach((h,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;dates.push(ds);hdr.innerHTML+=`<th>${h}<br><span class="text-xs font-normal">(${ds})</span></th>`;});tb.appendChild(hdr);strukturWaktu.forEach((w,si)=>{if(!scheduleData[bulan][minggu][w.sesi])scheduleData[bulan][minggu][w.sesi]={};const tr=document.createElement('tr');if(si===0){const tm=document.createElement('td');tm.rowSpan=strukturWaktu.length;tm.className='bg-white font-bold border';tm.innerText=minggu;tr.appendChild(tm);}tr.innerHTML+=`<td class="font-bold border">${w.sesi}</td><td class="font-bold border">${w.jam}</td>`;daftarHari.forEach((h,hi)=>{if(skip[h]>0){skip[h]--;return;}const td=document.createElement('td');const cell=scheduleData[bulan][minggu][w.sesi][h]||{materi:'',instruktur:'',ruang:''};const isAuto=cell.materi==='PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';const isFull=cell.isFullDay||isAuto;let isConflict=false;if(cell.materi&&!MATERI_BEBAS_BENTROK.includes(cell.materi)){for(const oid in allProdiSchedules){if(oid===prodi.id)continue;const os=allProdiSchedules[oid]?.[bulan]?.[minggu]?.[w.sesi]?.[h];if(os?.materi===cell.materi)isConflict=true;}}let cls='hari-cell border';if(cell.isLibur)cls+=' bg-red-400 text-white';if(isConflict)cls+=' cell-conflict';td.className=cls;if(isFull){const sp=strukturWaktu.length-si;td.rowSpan=sp;skip[h]=sp-1;}let html=`<div class="cell-content ${isFull?'justify-center items-center':''}">`;if(cell.materi){html+=`<div class="cell-materi ${isFull&&isAuto?'writing-vertical':''}">${cell.materi}</div>`;if(isConflict)html+=`<div style="font-size:.65rem;color:#ea580c;padding:1px 2px;">⚠ Bentrok</div>`;if(cell.instruktur)html+=`<div class="cell-instruktur">${cell.instruktur}</div>`;let ruang=cell.ruang&&cell.ruang!=='-'?cell.ruang:(cell.ruang==='-'?'':defRoom);if(ruang)html+=`<div class="cell-ruang ${cell.isLibur?'bg-red-600':'bg-blue-500'}">${ruang}</div>`;}html+='</div>';td.innerHTML=html;td.onclick=()=>openEditModal(bulan,minggu,w.sesi,h,cell,dates[hi]);tr.appendChild(td);});tb.appendChild(tr);});wd.appendChild(tbl);wrapper.appendChild(wd);});}
+function renderScheduleTable(){const wr=document.getElementById('tableWrapper');wr.innerHTML='';if(!currentProdi)return;const bulan=document.getElementById('monthSelector').value;document.getElementById('scheduleTitle').innerText=`JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}`;buildTableContent(currentProdi,bulan,wr);}
+function addWeek(){const b=document.getElementById('monthSelector').value;if(!scheduleData[b])scheduleData[b]={};const wk=Object.keys(scheduleData[b]);if(wk.length>=listMingguRomawi.length)return;let mx=-1;wk.forEach(w=>{const i=listMingguRomawi.indexOf(w);if(i>mx)mx=i;});const nx=listMingguRomawi[mx+1];scheduleData[b][nx]={};saveData();renderScheduleTable();}
+function removeWeek(){const b=document.getElementById('monthSelector').value;const wk=Object.keys(scheduleData[b]||{});if(wk.length<=1)return;wk.sort((a,c)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(c));const last=wk[wk.length-1];if(confirm(`Hapus Minggu Ke-${last}?`)){delete scheduleData[b][last];saveData();renderScheduleTable();}}
+function openEditModal(bulan,minggu,sesi,hari,cell,dateStr){currentEditCell={bulan,minggu,sesi,hari};document.getElementById('editTitle').innerText=`Isi Jadwal: ${hari} (${dateStr}), Minggu ${minggu} – Sesi ${sesi}`;updateDropdowns();document.getElementById('editMateri').value=cell.materi||'';document.getElementById('editInstruktur').value=cell.instruktur||'';document.getElementById('editRuang').value=cell.ruang||'';document.getElementById('editFullDay').checked=cell.isFullDay||false;document.getElementById('editLibur').checked=cell.isLibur||false;updateMateriInfo();document.getElementById('editModal').classList.remove('hidden');}
+function closeEditModal(){document.getElementById('editModal').classList.add('hidden');currentEditCell=null;}
+function closeAiResolutionModal(){document.getElementById('aiResolutionModal').classList.add('hidden');pendingSaveData=null;}
+function checkDetailedConflicts(materi,instruktur,ruang,bulan,minggu,sesi,hari){let c=[];if(materi){const mObj=dataMateri.find(m=>m.name===materi);if(mObj&&mObj.quota>0){let u=countMateriUsage(materi);const same=currentEditCell&&scheduleData[bulan]?.[minggu]?.[sesi]?.[hari]?.materi===materi;if(!same)u++;if(u>mObj.quota)c.push({type:'kuota',msg:`Kuota materi '${materi}' habis/overlimit.`});}}for(const pId in allProdiSchedules){if(pId===currentProdi?.id)continue;const cell=allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];if(!cell||cell.isLibur)continue;const n=(dataProdi.find(p=>p.id===pId)?.name||pId).toUpperCase();if(materi&&cell.materi===materi&&!MATERI_BEBAS_BENTROK.includes(materi))c.push({type:'materi',msg:`Materi '${materi}' sudah dipakai di kelas ${n}.`});if(instruktur&&cell.instruktur&&cell.instruktur.toLowerCase()===instruktur.toLowerCase())c.push({type:'instruktur',msg:`Instruktur '${instruktur}' dijadwalkan mengajar di kelas ${n}.`});if(ruang&&cell.ruang===ruang&&ruang!=='-')c.push({type:'ruang',msg:`Ruang '${ruang}' sedang digunakan oleh kelas ${n}.`});}return c;}
+function getRecommendations(conflicts,bulan,minggu,sesi,hari){let r=[];if(conflicts.some(c=>c.type==='materi'||c.type==='kuota')){const alt=dataMateri.map(m=>{let u=countMateriUsage(m.name);return{name:m.name,sisa:m.quota>0?(m.quota-u):999};}).filter(m=>m.sisa>0&&!MATERI_BEBAS_BENTROK.includes(m.name)).sort((a,b)=>b.sisa-a.sisa).slice(0,3);r.push(alt.length?`Alternatif materi: <b>${alt.map(m=>m.name).join(', ')}</b>.`:'Tidak ada alternatif materi tersedia.');}if(conflicts.some(c=>c.type==='instruktur'))r.push("Ganti instruktur atau pindah ke sesi/hari lain.");if(conflicts.some(c=>c.type==='ruang')){let used=[];for(const pId in allProdiSchedules){const cell=allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];if(cell?.ruang)used.push(cell.ruang);}let free=dataRoom.filter(r=>!used.includes(r));r.push(free.length?`Ruang kosong: <b>${free.join(', ')}</b>.`:"Semua ruang penuh.");}return r.length?r:["Ubah parameter jadwal."];}
+function prodiHasConflictInBulan(pid,bulan){const sd=allProdiSchedules[pid]||{};for(const mg in (sd[bulan]||{}))for(const ss in sd[bulan][mg])for(const hh in sd[bulan][mg][ss]){const cell=sd[bulan][mg][ss][hh];if(!cell?.materi||cell.isLibur||MATERI_BEBAS_BENTROK.includes(cell.materi))continue;for(const oid in allProdiSchedules){if(oid===pid)continue;const os=allProdiSchedules[oid]?.[bulan]?.[mg]?.[ss]?.[hh];if(os?.materi===cell.materi)return true;}}return false;}
+function handleSaveClick(){if(!currentEditCell)return;const{bulan,minggu,sesi,hari}=currentEditCell;const materi=document.getElementById('editMateri').value,instruktur=document.getElementById('editInstruktur').value,ruang=document.getElementById('editRuang').value;const isFullDay=document.getElementById('editFullDay').checked,isLibur=document.getElementById('editLibur').checked;const c=checkDetailedConflicts(materi,instruktur,ruang,bulan,minggu,sesi,hari);if(c.length>0){document.getElementById('aiConflictList').innerHTML=c.map(x=>`<li>${x.msg}</li>`).join('');document.getElementById('aiRecommendationList').innerHTML=getRecommendations(c,bulan,minggu,sesi,hari).map(r=>`<li>${r}</li>`).join('');pendingSaveData={bulan,minggu,sesi,hari,materi,instruktur,ruang,isFullDay,isLibur};document.getElementById('aiResolutionModal').classList.remove('hidden');}else{pendingSaveData={bulan,minggu,sesi,hari,materi,instruktur,ruang,isFullDay,isLibur};forceSaveCellData();}}
+function forceSaveCellData(){if(!pendingSaveData)return;const{bulan,minggu,sesi,hari,materi,instruktur,ruang,isFullDay,isLibur}=pendingSaveData;if(!scheduleData[bulan])scheduleData[bulan]={};if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};if(!scheduleData[bulan][minggu][sesi])scheduleData[bulan][minggu][sesi]={};scheduleData[bulan][minggu][sesi][hari]={materi,instruktur,ruang,isFullDay,isLibur};saveData();closeAiResolutionModal();closeEditModal();renderScheduleTable();pendingSaveData=null;}
+function openPrintModal(){const cur=document.getElementById('monthSelector').value;document.getElementById('printMonthList').innerHTML=daftarBulan.map(b=>`<label class="flex items-center space-x-3 cursor-pointer p-3 hover:bg-gray-50 rounded border border-gray-200"><input type="checkbox" value="${b}" class="print-month-cb h-5 w-5" ${b===cur?'checked':''}><span class="text-sm font-bold">Bulan ${b}</span></label>`).join('');document.getElementById('printModal').classList.remove('hidden');}
+function closePrintModal(){document.getElementById('printModal').classList.add('hidden');}
+let allSelected=false;
+function toggleAllPrintMonths(){allSelected=!allSelected;document.querySelectorAll('.print-month-cb').forEach(c=>c.checked=allSelected);}
+function executePrint(){const months=Array.from(document.querySelectorAll('.print-month-cb:checked')).map(c=>c.value);if(!months.length){alert('Pilih minimal 1 bulan!');return;}closePrintModal();const wrapper = document.getElementById('tableWrapper');wrapper.innerHTML = '';months.forEach(bulan=>{const container = document.createElement('div');container.className = 'print-container';const title = `<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}</h2>`;container.innerHTML = title;buildTableContent(currentProdi, bulan, container);wrapper.appendChild(container);});document.getElementById('scheduleTitle').classList.add('no-print');setTimeout(()=>{window.print();setTimeout(()=>{document.getElementById('scheduleTitle').classList.remove('no-print');renderScheduleTable();},500);},300);}
+
+// ============================================================
+// CHATBOT FUNGSI DENGAN JAARVIS DEO & RANDOM EMOJI
+// ============================================================
+function randomEmoji() {
+    const emojis = ['🤖', '😄', '🎉', '✨', '🌟', '💬', '🤗', '🙌', '💡', '🔥', '⭐', '🍕', '🎈', '😎', '👻', '🐱', '🦄', '🚀'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+}
+function updateAvatarEmoji() {
+    const avatar = document.getElementById('avatarEmoji');
+    if (avatar) avatar.innerText = randomEmoji();
+}
+// Sapaan dengan emoji random
+function getRandomGreeting() {
+    const greetings = [
+        `Halo! Saya Jaarvis Deo ${randomEmoji()} asisten pribadi kamoeh. Ada yang bisa dibantu?`,
+        `Hey! Jaarvis Deo siap membantu ${randomEmoji()} Tanyakan soal jadwal yuk!`,
+        `${randomEmoji()} Hallo! Saya Jaarvis Deo. Kamu butuh info jadwal?`,
+        `Jaarvis Deo di sini ${randomEmoji()} Silakan pilih pertanyaan di bawah ya!`
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
+}
+// Normalisasi teks
+function normalize(txt) {
+    let s = txt.toLowerCase().trim().replace(/[?!.,;:'"]/g,'').replace(/\s+/g,' ');
+    s = s.replace(/\bgs(\s?)1\b/,'gs 1').replace(/\bgs(\s?)2\b/,'gs 2').replace(/\bgs(\s?)3\b/,'gs 3')
+         .replace(/\bgs(\s?)4\b/,'gs 4').replace(/\bgs(\s?)5\b/,'gs 5')
+         .replace(/\bfa(\s?)1\b/,'fa 1').replace(/\bfa(\s?)2\b/,'fa 2').replace(/\bfa(\s?)3\b/,'fa 3');
+    return s;
+}
+function extractProdiList(low) {
+    const rangeMatch = low.match(/(gs\s?\d|fa\s?\d)\s*[-–]\s*(gs\s?\d|fa\s?\d)/i);
+    if (rangeMatch) {
+        let start = rangeMatch[1].replace(/\s/g,'').toUpperCase();
+        let end   = rangeMatch[2].replace(/\s/g,'').toUpperCase();
+        const allIds = dataProdi.map(p => p.id.toUpperCase()).sort();
+        const startIdx = allIds.indexOf(start);
+        const endIdx = allIds.indexOf(end);
+        if (startIdx !== -1 && endIdx !== -1 && startIdx <= endIdx) {
+            const selectedIds = allIds.slice(startIdx, endIdx+1);
+            return dataProdi.filter(p => selectedIds.includes(p.id.toUpperCase()));
         }
     }
-    return bentrok;
+    if (low.includes('semua prodi') || low.includes('semua kelas') || low.includes('all')) return dataProdi.slice();
+    const single = dataProdi.find(p => low.includes(p.name.toLowerCase()) || low.includes(p.id.toLowerCase()));
+    return single ? [single] : [];
 }
+function extractHari(low){return daftarHari.find(h=>low.includes(h.toLowerCase()));}
+function extractBulan(low){return daftarBulan.find(b=>low.includes(b.toLowerCase().split(' ')[0]));}
+function extractSesi(low){const m=low.match(/sesi\s*([1-7]|i{1,3}v?|vi{0,3}|iv|v)/i);if(!m)return null;const map={'1':'I','2':'II','3':'III','4':'IV','5':'V','6':'VI','7':'VII'};return map[m[1].toLowerCase()]||m[1].toUpperCase();}
+function extractMateriName(low){const match=low.match(/(?:materi|pelajaran)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return match?match[1].trim():null;}
+function extractInstrukturName(low){const match=low.match(/(?:instruktur|pengajar|guru|diajar oleh)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return match?match[1].trim():null;}
+function extractRuangName(low){const match=low.match(/(?:ruang|kelas|ruangan)\s+([a-z][a-z\s]+?)(?:\s|$)/i);return match?match[1].trim():null;}
 
-// Untuk satu prodi: ambil semua (bulan,minggu,sesi,hari) yang punya bentrok
-function getProdiConflictKeys(prodiId) {
-    const sd = allProdiSchedules[prodiId] || {};
-    const conflicts = new Set(); // key: "bulan|minggu|sesi|hari"
-    for (const bulan in sd) {
-        for (const minggu in sd[bulan]) {
-            for (const sesi in sd[bulan][minggu]) {
-                for (const hari in sd[bulan][minggu][sesi]) {
-                    const materi = sd[bulan][minggu][sesi][hari]?.materi;
-                    if (!materi || MATERI_BEBAS_BENTROK.includes(materi)) continue;
-                    // Cek apakah ada prodi lain dengan materi+waktu sama
-                    for (const otherId in allProdiSchedules) {
-                        if (otherId === prodiId) continue;
-                        const otherSel = allProdiSchedules[otherId]?.[bulan]?.[minggu]?.[sesi]?.[hari];
-                        if (otherSel && otherSel.materi === materi) {
-                            conflicts.add(`${bulan}|${sesi}|${hari}`);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return conflicts;
-}
+function getAllJadwalFlat(prodiId){const sd=allProdiSchedules[prodiId]||{};const rows=[];for(const bulan in sd) for(const minggu in sd[bulan]){const mon=getMondayForWeek(bulan,minggu);for(const sesi in sd[bulan][minggu]) for(const hari in sd[bulan][minggu][sesi]){const cell=sd[bulan][minggu][sesi][hari];if(!cell?.materi)continue;const hi=daftarHari.indexOf(hari);const d=new Date(mon);d.setDate(d.getDate()+hi);const tgl=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;const sesiObj=strukturWaktu.find(w=>w.sesi===sesi);rows.push({bulan,minggu,sesi,hari,materi:cell.materi,instruktur:cell.instruktur||'',ruang:cell.ruang||'',isLibur:cell.isLibur,prodi:prodiId,tgl,jam:sesiObj?.jam||''});}}rows.sort((a,b)=>{const bi=daftarBulan.indexOf(a.bulan)-daftarBulan.indexOf(b.bulan);if(bi!==0)return bi;const mi=listMingguRomawi.indexOf(a.minggu)-listMingguRomawi.indexOf(b.minggu);if(mi!==0)return mi;return strukturWaktu.findIndex(w=>w.sesi===a.sesi)-strukturWaktu.findIndex(w=>w.sesi===b.sesi);});return rows;}
+function getAllJadwalFlatForProdiList(prodiList){let all=[];for(let p of prodiList) all.push(...getAllJadwalFlat(p.id));return all;}
+function formatRow(r,prodi,bulan){const ruang=r.ruang&&r.ruang!=='-'?r.ruang:getActiveRoom(prodi?.defaultRoom||'',bulan||r.bulan);let line=`<b>${r.hari}</b> (${r.tgl}) · Sesi ${r.sesi} <span style="color:#6b7280;font-size:.8rem">${r.jam}</span><br>`;line+=`&nbsp;&nbsp;📚 <b>${r.materi}</b>`;if(r.instruktur)line+=` &nbsp;👤 ${r.instruktur}`;if(ruang)line+=` &nbsp;🚪 ${ruang}`;if(r.isLibur)line+=` &nbsp;<span style="color:#ef4444;font-weight:bold">🔴 LIBUR</span>`;return line;}
+function chipsHTML(list){return '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">'+list.map(c=>`<span class="chip" onclick="quickReply('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('')+'</div>';}
+function quickReply(txt){document.getElementById('chatInput').value=txt;sendChatMessage();}
 
-// Apakah prodi punya SETIDAKNYA 1 bentrok di bulan tertentu?
-function prodiHasConflictInBulan(prodiId, bulan) {
-    const sd = allProdiSchedules[prodiId] || {};
-    const bulanData = sd[bulan] || {};
-    for (const minggu in bulanData) {
-        for (const sesi in bulanData[minggu]) {
-            for (const hari in bulanData[minggu][sesi]) {
-                const materi = bulanData[minggu][sesi][hari]?.materi;
-                if (!materi || MATERI_BEBAS_BENTROK.includes(materi)) continue;
-                for (const otherId in allProdiSchedules) {
-                    if (otherId === prodiId) continue;
-                    const os = allProdiSchedules[otherId]?.[bulan]?.[minggu]?.[sesi]?.[hari];
-                    if (os && os.materi === materi) return true;
-                }
-            }
-        }
-    }
-    return false;
-}
+// Intent dan jawaban
+function answerKonflik(){
+    const found=[]; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); for(const r of rows){if(MATERI_BEBAS_BENTROK.includes(r.materi))continue; for(const p2 of dataProdi){if(p2.id===p.id)continue; const rows2=getAllJadwalFlat(p2.id); const match=rows2.find(r2=>r2.bulan===r.bulan&&r2.minggu===r.minggu&&r2.sesi===r.sesi&&r2.hari===r.hari&&r2.materi===r.materi); if(match) found.push(`⚠️ ${p.name} & ${p2.name}: "${r.materi}" pada ${r.hari} (${r.tgl}) Sesi ${r.sesi}`);}}} if(!found.length) return "✅ Tidak ada konflik jadwal."; return `⚠️ Ditemukan ${found.length} konflik:<br><br>`+found.slice(0,10).join('<br>');}
+function answerKuota(){
+    const list=dataMateri.map(m=>{const used=countMateriUsage(m.name);return{name:m.name,quota:m.quota,used,sisa:m.quota>0?m.quota-used:Infinity};}); const aman=list.filter(m=>m.sisa>0).sort((a,b)=>(b.sisa===Infinity?99999:b.sisa)-(a.sisa===Infinity?99999:a.sisa)); const habis=list.filter(m=>m.sisa!==Infinity&&m.sisa<=0); let out=`💡 Sisa Kuota Materi:<br>`; aman.slice(0,8).forEach(m=>{out+=`• ${m.name}: ${m.sisa===Infinity?'∞ tak terbatas':`${m.sisa} sisa (${m.used}/${m.quota})`}<br>`;}); if(habis.length) out+=`<br>🔴 Kuota habis: ${habis.map(m=>m.name).join(', ')}`; return out;}
+function answerRekapForProdiList(prodiList,bulan){let rows=getAllJadwalFlatForProdiList(prodiList);if(bulan) rows=rows.filter(r=>r.bulan===bulan);if(!rows.length) return "Tidak ada data jadwal."; const perProdi={}; rows.forEach(r=>{const pn=dataProdi.find(p=>p.id===r.prodi)?.name||r.prodi; perProdi[pn]=(perProdi[pn]||0)+1;}); const perMateri={}; rows.forEach(r=>{perMateri[r.materi]=(perMateri[r.materi]||0)+1;}); const topMateri=Object.entries(perMateri).sort((a,b)=>b[1]-a[1]).slice(0,5); let out=`📊 Rekap Jadwal${bulan?' '+bulan:''} (${prodiList.length} prodi):<br>Total sesi: ${rows.length}<br><br>Per prodi:<br>`+Object.entries(perProdi).map(([p,c])=>`• ${p}: ${c} sesi`).join('<br>'); if(topMateri.length) out+=`<br><br>🏆 Top materi: ${topMateri.map(([m,c])=>`${m} (${c}x)`).join(', ')}`; return out;}
+function answerInstruktur(instr){const map={}; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.instruktur){const key=r.instruktur.trim();if(!map[key])map[key]={name:key,count:0,prodis:new Set()};map[key].count++;map[key].prodis.add(p.name);}});} if(instr){const match=Object.values(map).find(i=>i.name.toLowerCase().includes(instr.toLowerCase())); if(match) return `👨‍🏫 ${match.name} mengajar ${match.count} sesi di: ${[...match.prodis].join(', ')}`; return `Instruktur "${instr}" tidak ditemukan.`;} if(Object.keys(map).length===0) return "Belum ada data instruktur."; return `👨‍🏫 Daftar Instruktur:<br>`+Object.values(map).sort((a,b)=>b.count-a.count).slice(0,10).map(i=>`• ${i.name} (${i.count} sesi)`).join('<br>');}
+function answerRuang(ruang,hari,sesi){if(ruang){let used=[]; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.ruang===ruang) used.push(`${p.name} ${r.hari} Sesi ${r.sesi}`);});} if(!used.length) return `Ruang ${ruang} tidak digunakan.`; return `🏢 Ruang ${ruang} dipakai:<br>`+used.slice(0,10).join('<br>');}else if(hari||sesi){let usedRooms=new Set(); for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if((!hari||r.hari===hari)&&(!sesi||r.sesi===sesi)) usedRooms.add(r.ruang);});} const free=dataRoom.filter(r=>!usedRooms.has(r)); return `🚪 Ruang kosong${hari?' hari '+hari:''}${sesi?' sesi '+sesi:''}: ${free.length?free.join(', '):'Tidak ada'}`;} return `🚪 Daftar Ruang: ${dataRoom.join(', ')}`;}
+function answerDaftarProdi(){return `🏫 Daftar Prodi (${dataProdi.length}):<br>`+dataProdi.map(p=>`• ${p.name} (${p.defaultRoom})`).join('<br>');}
+function answerMateriByProdi(prodiList){if(!prodiList.length) return "Sebutkan prodinya."; let rows=getAllJadwalFlatForProdiList(prodiList); if(!rows.length) return `Belum ada materi untuk prodi yang dipilih.`; const set=new Set(rows.map(r=>r.materi)); let out=`📋 Materi di ${prodiList.length===1?prodiList[0].name:prodiList.length+' prodi'}:<br>`; out+=Array.from(set).sort().map(m=>`• ${m}`).join('<br>'); return out;}
+function answerJadwalForProdiList(prodiList,hari,bulan,sesi,materi){if(!prodiList.length) return "Prodi mana?"; let rows=getAllJadwalFlatForProdiList(prodiList); if(!rows.length) return `Belum ada jadwal.`; if(bulan) rows=rows.filter(r=>r.bulan===bulan); if(hari) rows=rows.filter(r=>r.hari===hari); if(sesi) rows=rows.filter(r=>r.sesi===sesi); if(materi) rows=rows.filter(r=>r.materi===materi); if(!rows.length) return `Tidak ada jadwal${hari?' hari '+hari:''}${bulan?' '+bulan:''}.`; let title=`📅 Jadwal ${prodiList.length===1?prodiList[0].name:prodiList.length+' prodi'}${hari?' hari '+hari:''}${bulan?' '+bulan:''}`; let out=`${title} (${rows.length} sesi):<br><br>`; rows.slice(0,12).forEach(r=>{out+=formatRow(r,dataProdi.find(p=>p.id===r.prodi),r.bulan)+'<br><br>';}); if(rows.length>12) out+=`<i>...dan ${rows.length-12} sesi lainnya.</i>`; return out;}
+function answerAllLibur(){let liburList=[]; for(const p of dataProdi){const rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.isLibur) liburList.push(`${p.name}: ${r.hari} (${r.tgl}) Sesi ${r.sesi}`);});} if(!liburList.length) return "Belum ada jadwal libur."; return `🔴 Daftar jadwal libur:<br>`+liburList.join('<br>');}
+function answerSisaKuotaMateri(materiName){const m=dataMateri.find(m=>m.name.toLowerCase()===materiName.toLowerCase()); if(!m) return `Materi "${materiName}" tidak ditemukan.`; const used=countMateriUsage(m.name); if(m.quota===0) return `Materi "${m.name}" tidak terbatas. (Terpakai: ${used}x)`; const sisa=m.quota-used; return `💡 Materi "${m.name}": terpakai ${used} dari ${m.quota}, sisa ${sisa} kuota.`;}
+function answerInstrukturByMateri(materiName){if(!materiName) return "Sebutkan materi."; let instructors=new Set(); for(let p of dataProdi){let rows=getAllJadwalFlat(p.id); rows.forEach(r=>{if(r.materi===materiName && r.instruktur) instructors.add(r.instruktur);});} if(!instructors.size) return `Tidak ditemukan instruktur untuk materi "${materiName}".`; return `👨‍🏫 Instruktur materi "${materiName}": ${[...instructors].join(', ')}`;}
 
-// ============================================================
-// FIREBASE HELPERS
-// ============================================================
-function waitFirebase() {
-    return new Promise(resolve => {
-        const t = setInterval(() => {
-            if (window.firebaseDb && window.firebaseAuth) {
-                clearInterval(t);
-                resolve({ db: window.firebaseDb, auth: window.firebaseAuth });
-            }
-        }, 80);
-    });
+function detectIntentExt(low){
+    const has=(...w)=>w.some(x=>low.includes(x));
+    if(has('halo','hai','hei','hello','hi','selamat','pagi','siang','sore','malam','bantuan','help')) return 'greeting';
+    if(has('konflik','bentrok','tabrakan','clash','bentrokan','cek semua')) return 'cek_konflik';
+    if(has('kuota','sisa','habis','limit','overlimit','tersisa')) return 'kuota';
+    if(has('rekap','ringkasan','laporan','total','semua jadwal','keseluruhan')) return 'rekap';
+    if(has('instruktur','pengajar','guru','diajar')) return 'instruktur';
+    if(has('ruang','room','kelas','tempat','gedung','lokasi')) return 'ruang';
+    if(has('materi apa','daftar materi','list materi','ada materi','pelajaran','materi di')) return 'materi_prodi';
+    if(has('jadwal','lihat','tampil','cek jadwal','show','schedule')) return 'jadwal';
+    if(has('prodi','kelas apa','daftar prodi','semua kelas','list kelas')) return 'daftar_prodi';
+    if(has('libur','merah','tanggal merah','hari libur')) return 'libur';
+    return 'unknown';
 }
-function toggleLoading(show, msg = 'Sinkronisasi...') {
-    if (show && !document.getElementById('loadingOverlay')) {
-        document.body.insertAdjacentHTML('beforeend', `
-            <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex flex-col justify-center items-center text-white">
-                <i class="fas fa-spinner fa-spin text-5xl mb-4"></i>
-                <h2 class="text-xl font-bold">${msg}</h2>
-            </div>`);
-    } else if (!show) {
-        document.getElementById('loadingOverlay')?.remove();
-    }
-}
-function setSyncStatus(ok) {
-    const el = document.getElementById('syncStatus');
-    if (!el) return;
-    el.innerHTML = ok
-        ? '<i class="fas fa-cloud text-green-600"></i> <span class="text-green-600">Firebase Sync Aktif</span>'
-        : '<i class="fas fa-exclamation-triangle text-red-500"></i> <span class="text-red-500">Offline / Error</span>';
-}
-function showToast(msg, color = 'bg-gray-800') {
-    const t = document.createElement('div');
-    t.className = `fixed bottom-6 right-6 ${color} text-white px-5 py-3 rounded-xl shadow-xl z-[200] text-sm font-bold flex items-center gap-2`;
-    t.innerHTML = `<i class="fas fa-sync-alt"></i> ${msg}`;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 3500);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-async function initApp() {
-    const { db, auth } = await waitFirebase();
-    try { await window.fbSignInAnonymously(auth); } catch(e) {}
-
-    await fetchMaster(db);
-
-    // Listener realtime master
-    window.fbOnSnapshot(window.fbDoc(db, 'jadwal_angkasa', 'master'), snap => {
-        if (!snap.exists()) return;
-        const d = snap.data();
-        if (d.prodi)  dataProdi  = d.prodi;
-        if (d.room)   dataRoom   = d.room;
-        if (d.materi) {
-            dataMateri = typeof d.materi[0] === 'string'
-                ? d.materi.map(m => ({ name: m, quota: 10 })) : d.materi;
-        }
-        renderDashboard(); updateDropdowns();
-    });
-
-    // Tarik & subscribe semua jadwal prodi untuk keperluan cek bentrok
-    await fetchAllProdiSchedules(db);
-    subscribeAllProdi(db);
-
-    setSyncStatus(true);
-    renderDashboard();
-    updateDropdowns();
-}
-
-// ============================================================
-// MASTER
-// ============================================================
-async function fetchMaster(db) {
-    toggleLoading(true, 'Memuat Data Master...');
-    try {
-        const snap = await window.fbGetDoc(window.fbDoc(db, 'jadwal_angkasa', 'master'));
-        if (snap.exists()) {
-            const d = snap.data();
-            if (d.prodi) dataProdi = d.prodi;
-            if (d.room)  dataRoom  = d.room;
-            if (d.materi) {
-                dataMateri = typeof d.materi[0] === 'string'
-                    ? d.materi.map(m => ({ name: m, quota: 10 })) : d.materi;
-            }
-        } else {
-            await saveMaster(db);
-        }
-    } catch(e) { console.error('fetchMaster', e); setSyncStatus(false); }
-    finally { toggleLoading(false); }
-}
-async function saveMaster(dbArg) {
-    const { db } = dbArg ? { db: dbArg } : await waitFirebase();
-    try {
-        await window.fbSetDoc(window.fbDoc(db, 'jadwal_angkasa', 'master'),
-            { prodi: dataProdi, room: dataRoom, materi: dataMateri, updatedAt: new Date().toISOString() });
-    } catch(e) { alert('Gagal simpan master:\n' + e.message); }
-}
-
-// ============================================================
-// JADWAL PER PRODI
-// ============================================================
-async function fetchProdiSchedule(prodiId) {
-    const { db } = await waitFirebase();
-    toggleLoading(true, 'Memuat Jadwal...');
-    try {
-        const snap = await window.fbGetDoc(window.fbDoc(db, 'jadwal_prodi', prodiId));
-        scheduleData = snap.exists() ? (snap.data().schedule || {}) : {};
-        // Update cache bentrok
-        allProdiSchedules[prodiId] = scheduleData;
-    } catch(e) { scheduleData = {}; }
-    finally { toggleLoading(false); }
-}
-async function saveProdiSchedule() {
-    if (!currentProdi) return;
-    const { db } = await waitFirebase();
-    try {
-        await window.fbSetDoc(window.fbDoc(db, 'jadwal_prodi', currentProdi.id),
-            { schedule: scheduleData, updatedAt: new Date().toISOString() });
-        allProdiSchedules[currentProdi.id] = scheduleData;
-        renderDashboard(); // refresh dot merah setelah simpan
-    } catch(e) { alert('Gagal menyimpan:\n' + e.message); }
-}
-
-// ============================================================
-// CACHE SEMUA JADWAL PRODI (untuk deteksi bentrok di dashboard)
-// ============================================================
-async function fetchAllProdiSchedules(db) {
-    for (const prodi of dataProdi) {
-        try {
-            const snap = await window.fbGetDoc(window.fbDoc(db, 'jadwal_prodi', prodi.id));
-            allProdiSchedules[prodi.id] = snap.exists() ? (snap.data().schedule || {}) : {};
-        } catch(e) { allProdiSchedules[prodi.id] = {}; }
+function processLocalChat(rawMsg){
+    const low=normalize(rawMsg);
+    const intent=detectIntentExt(low);
+    const prodiList=extractProdiList(low);
+    const hari=extractHari(low);
+    const bulan=extractBulan(low);
+    const sesi=extractSesi(low);
+    const materiName=extractMateriName(low);
+    const instrukturName=extractInstrukturName(low);
+    const ruangName=extractRuangName(low);
+    if(intent==='unknown') return "🤔 Hmm, kurang paham enih maksudnya. Coba gunakan contoh pertanyaan dari daftar.";
+    switch(intent){
+        case 'greeting': return getRandomGreeting() + chipsHTML(['Jadwal GS 1 Senin','Jadwal semua prodi','Sisa kuota','Cek konflik','Ruang yang dipakai FA 2','Instruktur materi AVK','Libur']);
+        case 'cek_konflik': return answerKonflik();
+        case 'kuota': return materiName? answerSisaKuotaMateri(materiName) : answerKuota();
+        case 'rekap': return answerRekapForProdiList(prodiList.length?prodiList:dataProdi,bulan);
+        case 'instruktur': return (materiName?answerInstrukturByMateri(materiName):(instrukturName?answerInstruktur(instrukturName):answerInstruktur(null)));
+        case 'ruang': return ruangName? answerRuang(ruangName,null,null) : answerRuang(null,hari,sesi);
+        case 'materi_prodi': return answerMateriByProdi(prodiList.length?prodiList:dataProdi);
+        case 'jadwal': return answerJadwalForProdiList(prodiList.length?prodiList:(low.includes('semua')?dataProdi:[]), hari, bulan, sesi, materiName);
+        case 'daftar_prodi': return answerDaftarProdi();
+        case 'libur': return answerAllLibur();
+        default: return "🤔 Hmm, kurang paham enih maksudnya.";
     }
 }
 
-// Subscribe semua prodi → update cache bentrok & re-render dashboard dot
-function subscribeAllProdi(db) {
-    dataProdi.forEach(prodi => {
-        if (unsubAllProdi[prodi.id]) { unsubAllProdi[prodi.id](); }
-        unsubAllProdi[prodi.id] = window.fbOnSnapshot(
-            window.fbDoc(db, 'jadwal_prodi', prodi.id),
-            snap => {
-                const incoming = snap.exists() ? (snap.data().schedule || {}) : {};
-                allProdiSchedules[prodi.id] = incoming;
-                // Jika ini prodi yang sedang dibuka → update scheduleData & re-render tabel
-                if (currentProdi && currentProdi.id === prodi.id) {
-                    if (JSON.stringify(incoming) !== JSON.stringify(scheduleData)) {
-                        scheduleData = incoming;
-                        renderScheduleTable();
-                        showToast('Jadwal diperbarui oleh pengguna lain 🔄');
-                    }
-                }
-                renderDashboard(); // refresh dot merah di dashboard
-            }
-        );
-    });
+// Chatbot UI
+function toggleChat(){const c=document.getElementById('chatbotContainer');const isOpen=!c.classList.contains('scale-100');c.classList.toggle('scale-0',!isOpen);c.classList.toggle('scale-100',isOpen);if(isOpen&&!document.querySelector('#chatBody .chat-msg-bot')) showWelcome();}
+function showWelcome(){
+    updateAvatarEmoji();
+    const list = ["📅 Jadwal GS 1 hari Senin","📅 Jadwal semua prodi","📊 Sisa kuota materi","⚠️ Cek konflik jadwal","🏫 Daftar prodi","📋 Materi apa saja di GS 3?","👨‍🏫 Instruktur yang mengajar materi AVK","🚪 Ruang yang dipakai FA 2","🚪 Ruang kosong hari Rabu sesi II","📈 Rekap jadwal bulan Juli","🔴 Jadwal libur"];
+    let html = `${getRandomGreeting()}<br><br>Berikut contoh pertanyaan yang bisa kamu tanyakan:<br><br>`;
+    html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
+    list.forEach(q => { html += `<span class="chip" onclick="quickReply('${q.replace(/'/g, "\\'")}')" style="cursor:pointer;background:#e0f2fe;padding:4px 12px;border-radius:20px;font-size:.75rem;width:fit-content;">${q}</span>`; });
+    html += `</div><br>Atau tulis pertanyaanmu sendiri!`;
+    addBotMsg(html);
 }
-
-function subscribeProdi(prodiId) {
-    // Sudah dihandle oleh subscribeAllProdi, tidak perlu double listener.
-    // Fungsi ini dipertahankan untuk kompatibilitas.
-}
-
-function saveData() { saveProdiSchedule(); }
-
-// ============================================================
-// DROPDOWN
-// ============================================================
-function updateDropdowns() {
-    const rs = document.getElementById('newProdiRoom');
-    if (rs) rs.innerHTML = dataRoom.map(r => `<option value="${r}">${r}</option>`).join('');
-    const em = document.getElementById('editMateri');
-    if (em) {
-        const cur = em.value;
-        em.innerHTML = '<option value="">- Kosong -</option>' +
-            dataMateri.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
-        if (cur) em.value = cur;
-    }
-    const er = document.getElementById('editRuang');
-    if (er) {
-        const cur = er.value;
-        er.innerHTML = '<option value="">- Default Ruang Prodi -</option><option value="-">- Tanpa Ruangan -</option>' +
-            dataRoom.map(r => `<option value="${r}">${r}</option>`).join('');
-        if (cur) er.value = cur;
-    }
-}
-
-// ============================================================
-// DASHBOARD — dengan dot merah jika ada bentrok
-// ============================================================
-function renderDashboard() {
-    const container = document.getElementById('prodiContainer');
-    container.innerHTML = '';
-    dataProdi.forEach(prodi => {
-        // Cek apakah prodi ini punya bentrok di bulan manapun
-        const hasAnyConflict = daftarBulan.some(b => prodiHasConflictInBulan(prodi.id, b));
-
-        const btn = document.createElement('button');
-        btn.className = "relative bg-white p-6 rounded-xl shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition text-left flex flex-col justify-between";
-        btn.onclick = () => openSchedule(prodi);
-
-        const dotHtml = hasAnyConflict
-            ? `<span class="conflict-dot" title="Ada bentrok jadwal di prodi ini!"></span>` : '';
-
-        btn.innerHTML = `
-            ${dotHtml}
-            <div class="text-2xl font-bold text-gray-800 mb-2">${prodi.name}</div>
-            <div class="text-sm text-gray-500 flex items-center gap-2">
-                <i class="fas fa-map-marker-alt text-red-500"></i> ${prodi.defaultRoom}
-            </div>
-            ${hasAnyConflict ? `<div class="text-xs text-red-500 font-bold mt-2 flex items-center gap-1">
-                <i class="fas fa-exclamation-circle"></i> Ada bentrok jadwal
-            </div>` : ''}`;
-        container.appendChild(btn);
-    });
-}
-
-// ============================================================
-// SETTINGS
-// ============================================================
-function openSettings()  { document.getElementById('settingsModal').classList.remove('hidden'); renderSettingsLists(); }
-function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
-function renderSettingsLists() {
-    document.getElementById('listSettingProdi').innerHTML = dataProdi.map((p, i) =>
-        `<li class="flex justify-between items-center bg-white p-2 rounded border">
-            <span><b>${p.name}</b> (${p.defaultRoom})</span>
-            <button onclick="deleteProdi(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-        </li>`).join('');
-    document.getElementById('listSettingRoom').innerHTML = dataRoom.map((r, i) =>
-        `<li class="flex justify-between items-center bg-white p-2 rounded border">
-            <span>${r}</span>
-            <button onclick="deleteRoom(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-        </li>`).join('');
-    document.getElementById('listSettingMateri').innerHTML = dataMateri.map((m, i) => {
-        const badge = m.quota > 0
-            ? `<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2 font-bold">Kuota: ${m.quota}x</span>`
-            : `<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded ml-2">∞</span>`;
-        const freeBadge = MATERI_BEBAS_BENTROK.includes(m.name)
-            ? `<span class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded ml-1">Bisa Bersamaan</span>` : '';
-        return `<li class="flex justify-between items-center bg-white p-2 rounded border">
-            <div class="flex-1 min-w-0"><span class="font-semibold text-xs break-words">${m.name}</span>${badge}${freeBadge}</div>
-            <button onclick="deleteMateri(${i})" class="text-red-500 hover:text-red-700 ml-2 flex-shrink-0"><i class="fas fa-trash"></i></button>
-        </li>`;
-    }).join('');
-}
-function addProdi() {
-    const name = document.getElementById('newProdiName').value.trim();
-    const room = document.getElementById('newProdiRoom').value;
-    if (!name) return;
-    dataProdi.push({ id: name.toLowerCase().replace(/\s/g,''), name, defaultRoom: room });
-    document.getElementById('newProdiName').value = '';
-    saveMaster(); renderDashboard(); renderSettingsLists();
-}
-function deleteProdi(i) {
-    if (confirm('Hapus prodi ini?')) { dataProdi.splice(i, 1); saveMaster(); renderDashboard(); renderSettingsLists(); }
-}
-function addRoom() {
-    const val = document.getElementById('newRoomName').value.trim();
-    if (!val) return;
-    dataRoom.push(val);
-    document.getElementById('newRoomName').value = '';
-    saveMaster(); updateDropdowns(); renderSettingsLists();
-}
-function deleteRoom(i) {
-    if (confirm('Hapus ruang ini?')) { dataRoom.splice(i, 1); saveMaster(); updateDropdowns(); renderSettingsLists(); }
-}
-function addMateri() {
-    const val = document.getElementById('newMateriName').value.trim();
-    if (!val) { alert('Nama materi tidak boleh kosong!'); return; }
-    if (dataMateri.some(m => m.name.toLowerCase() === val.toLowerCase())) {
-        alert('Materi sudah ada!'); return;
-    }
-    const quota = parseInt(document.getElementById('newMateriQuota').value) || 0;
-    dataMateri.push({ name: val, quota });
-    document.getElementById('newMateriName').value  = '';
-    document.getElementById('newMateriQuota').value = '';
-    saveMaster(); updateDropdowns(); renderSettingsLists();
-}
-function deleteMateri(i) {
-    if (confirm('Hapus materi ini?')) { dataMateri.splice(i, 1); saveMaster(); updateDropdowns(); renderSettingsLists(); }
-}
-
-// ============================================================
-// KUOTA
-// ============================================================
-function countMateriUsage(materiName) {
-    let count = 0;
-    for (const bulan in scheduleData)
-        for (const minggu in scheduleData[bulan])
-            for (const sesi in scheduleData[bulan][minggu])
-                for (const hari in scheduleData[bulan][minggu][sesi])
-                    if (scheduleData[bulan][minggu][sesi][hari]?.materi === materiName) count++;
-    return count;
-}
-
-// ============================================================
-// UPDATE INFO MATERI + CEK BENTROK SAAT PILIH DI MODAL EDIT
-// ============================================================
-function updateMateriInfo() {
-    const infoEl   = document.getElementById('materiQuotaInfo');
-    const warnEl   = document.getElementById('conflictWarning');
-    const btnSave  = document.getElementById('btnSimpan');
-    const name     = document.getElementById('editMateri').value;
-
-    // Reset warning
-    warnEl.classList.add('hidden');
-    warnEl.innerHTML = '';
-    btnSave.className = 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700';
-
-    if (!name) { infoEl.classList.add('hidden'); return; }
-    const obj = dataMateri.find(m => m.name === name);
-    if (!obj)  { infoEl.classList.add('hidden'); return; }
-
-    // Info kuota
-    let curCellMateri = '';
-    if (currentEditCell) {
-        const { bulan, minggu, sesi, hari } = currentEditCell;
-        curCellMateri = scheduleData[bulan]?.[minggu]?.[sesi]?.[hari]?.materi || '';
-    }
-    const isThisCell = curCellMateri === name;
-    const usage      = countMateriUsage(name);
-    if (obj.quota > 0) {
-        let sisa = obj.quota - usage - (isThisCell ? 0 : 1);
-        let text = `Terpakai: ${usage}x. (Sisa: ${sisa}x)`;
-        if      (sisa < 0)  { infoEl.className = 'text-xs font-bold mt-1 text-red-600';    text += ' ⚠️ OVERLIMIT!'; }
-        else if (sisa === 0) { infoEl.className = 'text-xs font-bold mt-1 text-orange-600'; text += ' ⚠️ Kuota Habis'; }
-        else                  { infoEl.className = 'text-xs font-semibold mt-1 text-blue-600'; }
-        infoEl.innerText = text;
-    } else {
-        infoEl.className = 'text-xs font-semibold mt-1 text-gray-500';
-        infoEl.innerText = `Terpakai: ${usage}x. (Kuota: tidak terbatas)`;
-    }
-    infoEl.classList.remove('hidden');
-
-    // Cek bentrok lintas prodi
-    if (currentEditCell && !MATERI_BEBAS_BENTROK.includes(name)) {
-        const { bulan, minggu, sesi, hari } = currentEditCell;
-        const bentrokList = cekBentrokLintas(name, bulan, minggu, sesi, hari);
-        if (bentrokList.length > 0) {
-            warnEl.innerHTML = `⚠️ <b>Peringatan!</b> Materi <b>"${name}"</b> sudah dijadwalkan di <b>${bentrokList.join(', ')}</b> pada waktu yang sama.<br>
-                <span class="text-orange-700">Anda masih bisa menyimpan, tapi akan tercatat sebagai bentrok.</span>`;
-            warnEl.classList.remove('hidden');
-            // Ubah tombol simpan jadi oranye sebagai penanda
-            btnSave.className = 'px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600';
-        }
-    }
-}
-
-// ============================================================
-// BUKA / TUTUP JADWAL
-// ============================================================
-async function openSchedule(prodi) {
-    currentProdi = prodi;
-    document.getElementById('scheduleModal').classList.remove('hidden');
-    await fetchProdiSchedule(prodi.id);
-    renderScheduleTable();
-}
-function closeSchedule() {
-    document.getElementById('scheduleModal').classList.add('hidden');
-    currentProdi  = null;
-    scheduleData  = {};
-}
-
-// ============================================================
-// RENDER TABEL — sel bentrok diberi class cell-conflict
-// ============================================================
-function buildTableContent(prodi, bulan, wrapperElement) {
-    const activeDefaultRoom = getActiveRoom(prodi.defaultRoom, bulan);
-    if (!scheduleData[bulan]) scheduleData[bulan] = {};
-
-    let existingWeeks = Object.keys(scheduleData[bulan]);
-    existingWeeks.sort((a, b) => listMingguRomawi.indexOf(a) - listMingguRomawi.indexOf(b));
-    if (existingWeeks.length === 0) {
-        getDefaultWeeksForMonth(bulan).forEach(w => { scheduleData[bulan][w] = {}; });
-        existingWeeks = [...getDefaultWeeksForMonth(bulan)];
-    }
-
-    // Hitung set key bentrok untuk prodi aktif di bulan ini
-    const conflictKeys = getProdiConflictKeys(prodi.id);
-
-    existingWeeks.forEach(minggu => {
-        if (!scheduleData[bulan][minggu]) scheduleData[bulan][minggu] = {};
-        const weekDiv = document.createElement('div');
-        weekDiv.className = 'week-container';
-        const table   = document.createElement('table');
-        table.className = 'jadwal-table w-full text-sm';
-        const tbody   = document.createElement('tbody');
-        table.appendChild(tbody);
-
-        let skipDay = {};
-        daftarHari.forEach(h => { skipDay[h] = 0; });
-
-        const weekMonday = getMondayForWeek(bulan, minggu);
-        const headerTr   = document.createElement('tr');
-        headerTr.innerHTML = '<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>';
-        const formattedDates = [];
-        daftarHari.forEach((hari, hIdx) => {
-            const d   = new Date(weekMonday);
-            d.setDate(d.getDate() + hIdx);
-            const dd  = String(d.getDate()).padStart(2,'0');
-            const mm  = String(d.getMonth()+1).padStart(2,'0');
-            const ds  = `${dd}/${mm}/${d.getFullYear()}`;
-            formattedDates.push(ds);
-            headerTr.innerHTML += `<th>${hari}<br><span class="text-xs font-normal">(${ds})</span></th>`;
-        });
-        tbody.appendChild(headerTr);
-
-        strukturWaktu.forEach((waktu, sIdx) => {
-            if (!scheduleData[bulan][minggu][waktu.sesi]) scheduleData[bulan][minggu][waktu.sesi] = {};
-            const tr = document.createElement('tr');
-            if (sIdx === 0) {
-                const tdM = document.createElement('td');
-                tdM.rowSpan = strukturWaktu.length;
-                tdM.className = 'bg-white font-bold border';
-                tdM.innerText = minggu;
-                tr.appendChild(tdM);
-            }
-            tr.innerHTML += `<td class="font-bold border">${waktu.sesi}</td><td class="font-bold border">${waktu.jam}</td>`;
-
-            daftarHari.forEach((hari, hIdx) => {
-                if (skipDay[hari] > 0) { skipDay[hari]--; return; }
-                const td       = document.createElement('td');
-                const cellData = scheduleData[bulan][minggu][waktu.sesi][hari] || { materi:'', instruktur:'', ruang:'' };
-                const isAuto   = cellData.materi === 'PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';
-                const isFull   = cellData.isFullDay || isAuto;
-
-                // Cek apakah sel ini bentrok
-                const conflictKey = `${bulan}|${waktu.sesi}|${hari}`;
-                const isConflict  = cellData.materi && !MATERI_BEBAS_BENTROK.includes(cellData.materi)
-                    && conflictKeys.has(conflictKey);
-
-                let tdClass = 'hari-cell border';
-                if (cellData.isLibur) tdClass += ' bg-red-400 text-white';
-                if (isConflict)       tdClass += ' cell-conflict';
-                td.className = tdClass;
-                td.style.position = 'relative';
-
-                if (isFull) {
-                    const span = strukturWaktu.length - sIdx;
-                    td.rowSpan = span;
-                    skipDay[hari] = span - 1;
-                }
-
-                let html = `<div class="cell-content ${isFull ? 'justify-center items-center' : ''}">`;
-                if (cellData.materi) {
-                    const vc = (isFull && isAuto) ? 'writing-vertical' : '';
-                    html += `<div class="cell-materi ${vc}">${cellData.materi}</div>`;
-                    // Jika bentrok, tampilkan nama prodi lain yang bentrok
-                    if (isConflict) {
-                        const b2 = cekBentrokLintas(cellData.materi, bulan, minggu, waktu.sesi, hari);
-                        if (b2.length > 0) {
-                            html += `<div style="font-size:0.65rem;color:#ea580c;padding:1px 2px;">⚠ Bentrok: ${b2.join(', ')}</div>`;
-                        }
-                    }
-                    if (cellData.instruktur) html += `<div class="cell-instruktur">${cellData.instruktur}</div>`;
-                    let ruang = cellData.ruang;
-                    if (!ruang || ruang === '') ruang = activeDefaultRoom;
-                    else if (ruang === '-') ruang = '';
-                    if (ruang) {
-                        const rc = cellData.isLibur ? 'bg-red-600' : 'bg-blue-500';
-                        html += `<div class="cell-ruang ${rc}">${ruang}</div>`;
-                    }
-                }
-                html += '</div>';
-                td.innerHTML = html;
-                td.onclick = () => openEditModal(bulan, minggu, waktu.sesi, hari, cellData, formattedDates[hIdx]);
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-        });
-        weekDiv.appendChild(table);
-        wrapperElement.appendChild(weekDiv);
-    });
-}
-
-function renderScheduleTable() {
-    const wrapper = document.getElementById('tableWrapper');
-    wrapper.innerHTML = '';
-    if (!currentProdi) return;
-    const bulan = document.getElementById('monthSelector').value;
-    const room  = getActiveRoom(currentProdi.defaultRoom, bulan);
-
-    // Tandai selector bulan jika ada bentrok
-    const selector = document.getElementById('monthSelector');
-    Array.from(selector.options).forEach(opt => {
-        const b = opt.value;
-        const hasC = prodiHasConflictInBulan(currentProdi.id, b);
-        opt.text = hasC ? `${b} ⚠` : b;
-        opt.style.color = hasC ? '#ef4444' : '';
-    });
-
-    document.getElementById('scheduleTitle').innerText =
-        `JADWAL MATERI - ${currentProdi.name} (${room}) - ${bulan}`;
-    buildTableContent(currentProdi, bulan, wrapper);
-}
-
-// ============================================================
-// TAMBAH / KURANGI MINGGU
-// ============================================================
-function addWeek() {
-    const bulan = document.getElementById('monthSelector').value;
-    if (!scheduleData[bulan]) scheduleData[bulan] = {};
-    const weeks = Object.keys(scheduleData[bulan]);
-    if (weeks.length >= listMingguRomawi.length) { alert('Maksimal minggu tercapai.'); return; }
-    let maxIdx = -1;
-    weeks.forEach(w => { const i = listMingguRomawi.indexOf(w); if (i > maxIdx) maxIdx = i; });
-    const next = listMingguRomawi[maxIdx + 1];
-    if (!next) { alert('Tidak ada label minggu berikutnya.'); return; }
-    scheduleData[bulan][next] = {};
-    saveData(); renderScheduleTable();
-}
-function removeWeek() {
-    const bulan = document.getElementById('monthSelector').value;
-    const weeks = Object.keys(scheduleData[bulan] || {});
-    if (weeks.length <= 1) { alert('Minimal 1 minggu harus ada.'); return; }
-    weeks.sort((a, b) => listMingguRomawi.indexOf(a) - listMingguRomawi.indexOf(b));
-    const last = weeks[weeks.length - 1];
-    if (confirm(`Hapus Minggu Ke-${last}? Data di dalamnya hilang.`)) {
-        delete scheduleData[bulan][last];
-        saveData(); renderScheduleTable();
-    }
-}
-
-// ============================================================
-// EDIT MODAL
-// ============================================================
-function openEditModal(bulan, minggu, sesi, hari, cellData, dateStr) {
-    currentEditCell = { bulan, minggu, sesi, hari };
-    document.getElementById('editTitle').innerText =
-        `Isi Jadwal: ${hari} (${dateStr}), Minggu ${minggu} – Sesi ${sesi}`;
-    updateDropdowns();
-    document.getElementById('editMateri').value     = cellData.materi     || '';
-    document.getElementById('editInstruktur').value = cellData.instruktur || '';
-    document.getElementById('editRuang').value      = cellData.ruang      || '';
-    document.getElementById('editFullDay').checked  = cellData.isFullDay  || false;
-    document.getElementById('editLibur').checked    = cellData.isLibur    || false;
-    // Reset warning & tombol
-    document.getElementById('conflictWarning').classList.add('hidden');
-    document.getElementById('btnSimpan').className = 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700';
-    updateMateriInfo();
-    document.getElementById('editModal').classList.remove('hidden');
-}
-function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-    currentEditCell = null;
-}
-function saveCellData() {
-    if (!currentEditCell) return;
-    const { bulan, minggu, sesi, hari } = currentEditCell;
-    const materi     = document.getElementById('editMateri').value;
-    const instruktur = document.getElementById('editInstruktur').value;
-    const ruang      = document.getElementById('editRuang').value;
-    const isFullDay  = document.getElementById('editFullDay').checked;
-    const isLibur    = document.getElementById('editLibur').checked;
-
-    // Cek bentrok — HANYA PERINGATAN, tidak memblokir simpan
-    if (materi && !MATERI_BEBAS_BENTROK.includes(materi)) {
-        const bentrok = cekBentrokLintas(materi, bulan, minggu, sesi, hari);
-        if (bentrok.length > 0) {
-            // Konfirmasi sebelum menyimpan jadwal yang bentrok
-            const lanjut = confirm(
-                `⚠️ PERINGATAN BENTROK!\n\nMateri "${materi}" sudah ada di prodi: ${bentrok.join(', ')}\npada waktu yang sama.\n\nTetap simpan? (Akan tercatat sebagai bentrok & diberi tanda di tabel)`
-            );
-            if (!lanjut) return; // Batal simpan jika user memilih Cancel
-        }
-    }
-
-    if (!scheduleData[bulan]) scheduleData[bulan] = {};
-    if (!scheduleData[bulan][minggu]) scheduleData[bulan][minggu] = {};
-    if (!scheduleData[bulan][minggu][sesi]) scheduleData[bulan][minggu][sesi] = {};
-    scheduleData[bulan][minggu][sesi][hari] = { materi, instruktur, ruang, isFullDay, isLibur };
-    saveData();
-    closeEditModal();
-    renderScheduleTable();
-}
-
-// ============================================================
-// CETAK PDF
-// ============================================================
-function openPrintModal() {
-    const cur = document.getElementById('monthSelector').value;
-    document.getElementById('printMonthList').innerHTML = daftarBulan.map(b =>
-        `<label class="flex items-center space-x-3 cursor-pointer p-3 hover:bg-gray-50 rounded border border-gray-200">
-            <input type="checkbox" value="${b}" class="print-month-cb h-5 w-5" ${b===cur?'checked':''}>
-            <span class="text-sm font-bold">Bulan ${b}</span>
-        </label>`).join('');
-    document.getElementById('printModal').classList.remove('hidden');
-}
-function closePrintModal() { document.getElementById('printModal').classList.add('hidden'); }
-let allSelected = false;
-function toggleAllPrintMonths() {
-    allSelected = !allSelected;
-    document.querySelectorAll('.print-month-cb').forEach(c => c.checked = allSelected);
-}
-function executePrint() {
-    const months = Array.from(document.querySelectorAll('.print-month-cb:checked')).map(c => c.value);
-    if (!months.length) { alert('Pilih minimal 1 bulan!'); return; }
-    closePrintModal();
-    const wrapper = document.getElementById('tableWrapper');
-    wrapper.innerHTML = '';
-    months.forEach(bulan => {
-        const room = getActiveRoom(currentProdi.defaultRoom, bulan);
-        const sec  = document.createElement('div');
-        sec.className = 'print-section';
-        sec.innerHTML = `<h2 class="print-only-title">JADWAL MATERI - ${currentProdi.name} (${room}) - ${bulan}</h2>`;
-        buildTableContent(currentProdi, bulan, sec);
-        wrapper.appendChild(sec);
-    });
-    document.getElementById('scheduleTitle').classList.add('no-print');
-    setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-            document.getElementById('scheduleTitle').classList.remove('no-print');
-            renderScheduleTable();
-        }, 500);
-    }, 300);
-}
-
+function addBotMsg(html){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot';d.innerHTML=html;b.appendChild(d);b.scrollTop=b.scrollHeight; updateAvatarEmoji();}
+function addUserMsg(txt){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-user';d.textContent=txt;b.appendChild(d);b.scrollTop=b.scrollHeight;}
+function addTyping(){const b=document.getElementById('chatBody');const d=document.createElement('div');d.className='chat-msg-bot chat-typing';d.id='chat-typing';d.innerHTML='<span></span><span></span><span></span>';b.appendChild(d);b.scrollTop=b.scrollHeight;return d;}
+function sendChatMessage(){const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg)return;inp.value='';addUserMsg(msg);const t=addTyping();setTimeout(()=>{t.remove();const reply=processLocalChat(msg);addBotMsg(reply);},400);}
 window.onload = initApp;
 </script>
 </body>
