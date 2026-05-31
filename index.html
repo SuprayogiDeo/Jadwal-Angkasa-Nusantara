@@ -87,7 +87,7 @@
     <div id="prodiContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 </div>
 
-<!-- MODAL JADWAL (ditempatkan lebih awal agar terbaca) -->
+<!-- MODAL JADWAL -->
 <div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-40 flex justify-center items-center">
     <div class="bg-white w-full h-full md:w-11/12 md:h-5/6 md:rounded-xl shadow-2xl flex flex-col relative">
         <div class="p-4 border-b flex justify-between items-center bg-gray-50 md:rounded-t-xl no-print">
@@ -112,11 +112,125 @@
     </div>
 </div>
 
-<!-- MODAL LAINNYA (skeleton) -->
-<div id="aiResolutionModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[60] flex justify-center items-center no-print">...</div>
-<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[55] flex justify-center items-center no-print">...</div>
-<div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">...</div>
+<!-- MODAL PENGATURAN DATA -->
+<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
+    <div class="bg-white w-11/12 md:w-3/4 lg:w-2/3 h-5/6 rounded-xl shadow-xl flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+            <h2 class="text-xl font-bold text-gray-800">Pengaturan Master Data</h2>
+            <button onclick="closeSettings()" class="text-gray-500 hover:text-red-500 transition"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="flex-1 overflow-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Prodi -->
+            <div>
+                <h3 class="font-bold border-b pb-2 mb-3 text-blue-700">Program Studi</h3>
+                <div class="flex gap-2 mb-3">
+                    <input id="newProdiName" type="text" placeholder="Nama Prodi (mis: GS 6)" class="border p-2 w-full text-sm rounded">
+                    <select id="newProdiRoom" class="border p-2 text-sm rounded"></select>
+                    <button onclick="addProdi()" class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700"><i class="fas fa-plus"></i></button>
+                </div>
+                <ul id="listSettingProdi" class="text-sm space-y-2"></ul>
+            </div>
+            <!-- Ruang -->
+            <div>
+                <h3 class="font-bold border-b pb-2 mb-3 text-blue-700">Ruang Kelas</h3>
+                <div class="flex gap-2 mb-3">
+                    <input id="newRoomName" type="text" placeholder="Nama Ruang Baru" class="border p-2 w-full text-sm rounded">
+                    <button onclick="addRoom()" class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700"><i class="fas fa-plus"></i></button>
+                </div>
+                <ul id="listSettingRoom" class="text-sm space-y-2"></ul>
+            </div>
+            <!-- Materi -->
+            <div>
+                <h3 class="font-bold border-b pb-2 mb-3 text-blue-700">Materi & Kuota</h3>
+                <div class="flex flex-col gap-2 mb-3">
+                    <div class="flex gap-2">
+                        <input id="newMateriName" type="text" placeholder="Nama Materi" class="border p-2 w-full text-sm rounded">
+                        <input id="newMateriQuota" type="number" placeholder="Kuota" class="border p-2 w-16 text-sm rounded" value="10" title="Kuota">
+                        <button onclick="addMateri()" class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700 flex-shrink-0"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                        <input type="checkbox" id="newMateriBebas" class="w-3.5 h-3.5 rounded border-gray-300">
+                        Bebas Bentrok (Bisa paralel)
+                    </label>
+                </div>
+                <ul id="listSettingMateri" class="text-sm space-y-2"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDIT JADWAL -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[55] flex justify-center items-center no-print">
+    <div class="bg-white w-96 rounded-xl shadow-xl flex flex-col">
+        <div class="p-4 border-b bg-gray-50 rounded-t-xl">
+            <h3 id="editTitle" class="font-bold text-sm text-gray-700">Isi Jadwal</h3>
+        </div>
+        <div class="p-5 flex flex-col gap-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Materi</label>
+                <select id="editMateri" class="w-full border border-gray-300 p-2 rounded text-sm focus:ring focus:ring-blue-200" onchange="updateMateriInfo()"></select>
+                <div id="materiQuotaInfo" class="hidden"></div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Instruktur</label>
+                <input type="text" id="editInstruktur" class="w-full border border-gray-300 p-2 rounded text-sm focus:ring focus:ring-blue-200" placeholder="Nama Instruktur">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Ruang Spesifik (Opsional)</label>
+                <select id="editRuang" class="w-full border border-gray-300 p-2 rounded text-sm focus:ring focus:ring-blue-200"></select>
+            </div>
+            <div class="flex gap-4 mt-2">
+                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" id="editFullDay" class="w-4 h-4"> Full Day</label>
+                <label class="flex items-center gap-2 text-sm text-red-600 font-bold cursor-pointer"><input type="checkbox" id="editLibur" class="w-4 h-4"> Hari Libur</label>
+            </div>
+        </div>
+        <div class="p-4 border-t flex justify-end gap-2 bg-gray-50 rounded-b-xl">
+            <button onclick="closeEditModal()" class="px-4 py-2 border rounded text-sm hover:bg-gray-100 font-medium">Batal</button>
+            <button onclick="handleSaveClick()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 font-medium">Simpan Jadwal</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL AI RESOLUTION (KONFLIK) -->
+<div id="aiResolutionModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-[60] flex justify-center items-center no-print">
+    <div class="bg-white w-[400px] rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex justify-center items-center text-red-600 text-xl"><i class="fas fa-exclamation-triangle"></i></div>
+            <div>
+                <h3 class="font-bold text-red-700 text-lg">Konflik Jadwal!</h3>
+                <p class="text-xs text-red-600 font-medium">Jaarvis Deo mendeteksi masalah</p>
+            </div>
+        </div>
+        <div class="p-5">
+            <p class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">Masalah yang ditemukan:</p>
+            <ul id="aiConflictList" class="list-disc ml-5 text-sm text-gray-600 space-y-1 mb-5"></ul>
+            
+            <p class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">Rekomendasi Jaarvis:</p>
+            <ul id="aiRecommendationList" class="list-disc ml-5 text-sm text-green-700 space-y-1 mb-2"></ul>
+        </div>
+        <div class="bg-gray-50 p-4 flex justify-end gap-2 border-t">
+            <button onclick="closeAiResolutionModal()" class="px-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-100">Batal & Revisi</button>
+            <button onclick="forceSaveCellData()" class="px-4 py-2 bg-red-600 rounded shadow-sm text-sm font-medium text-white hover:bg-red-700 flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> Tetap Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PRINT PDF -->
+<div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center no-print">
+    <div class="bg-white w-96 rounded-xl shadow-xl flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+            <h2 class="text-lg font-bold text-gray-800">Cetak PDF (Pilih Bulan)</h2>
+            <button onclick="closePrintModal()" class="text-gray-500 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-5">
+            <button onclick="toggleAllPrintMonths()" class="text-blue-600 text-sm font-bold mb-4 hover:underline flex items-center gap-1"><i class="fas fa-check-double"></i> Pilih Semua / Batal</button>
+            <div id="printMonthList" class="flex flex-col gap-2"></div>
+        </div>
+        <div class="p-4 border-t bg-gray-50 rounded-b-xl flex justify-end">
+            <button onclick="executePrint()" class="bg-green-600 text-white px-5 py-2 rounded shadow hover:bg-green-700 flex items-center gap-2 font-medium"><i class="fas fa-print"></i> Proses Cetak</button>
+        </div>
+    </div>
+</div>
 
 <!-- CHATBOT BUTTON & WINDOW -->
 <div id="chatbotBtn" onclick="toggleChat()" class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-2xl flex justify-center items-center cursor-pointer hover:bg-blue-700 transition-all z-50 text-white text-xl hover:scale-110 active:scale-95">
@@ -144,7 +258,8 @@
 // ============================================================
 // DATA & KONSTANTA
 // ============================================================
-const MATERI_BEBAS_BENTROK = ['SENAM PAGI','KESAMAPTAAN','OUTBOUND','Administration','Perkenalan Staff','Beauty & Handsome Class','PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII'];
+const OLD_MATERI_BEBAS_BENTROK = ['SENAM PAGI','KESAMAPTAAN','OUTBOUND','Administration','Perkenalan Staff','Beauty & Handsome Class','PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII'];
+function isMateriBebas(name){const m=dataMateri.find(x=>x.name===name);return m?!!m.isBebas:false;}
 
 let dataProdi = [
     {id:'gs1',name:'GS 1',defaultRoom:'Ruang Airbus'},{id:'gs2',name:'GS 2',defaultRoom:'Ruang Boing'},
@@ -163,7 +278,7 @@ let dataMateri = [
     {name:'SENAM PAGI',quota:10},{name:'Basic Cabin',quota:10},{name:'Announcement',quota:10},
     {name:'Flight Safety',quota:10},{name:'Safety Demo',quota:10},{name:'Beauty & Handsome Class',quota:10},
     {name:'Pax & Bag Handling',quota:10},{name:'Basic Cargo',quota:10},{name:'OUTBOUND',quota:10}
-];
+].map(m=>({...m, isBebas: OLD_MATERI_BEBAS_BENTROK.includes(m.name)}));
 const strukturWaktu = [
     {sesi:'I',jam:'05.00-06.00'},{sesi:'II',jam:'08.00-09.30'},{sesi:'III',jam:'09.30-11.00'},
     {sesi:'IV',jam:'11.30-13.00'},{sesi:'V',jam:'13.00-14.30'},{sesi:'VI',jam:'15.00-16.30'},
@@ -199,7 +314,7 @@ async function waitFirebase(){while(!window.fb)await new Promise(r=>setTimeout(r
 function toggleLoading(show,msg='Sinkronisasi...'){if(show&&!document.getElementById('loadingOverlay')){document.body.insertAdjacentHTML('beforeend',`<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex flex-col justify-center items-center text-white"><i class="fas fa-spinner fa-spin text-5xl mb-4"></i><h2 class="text-xl font-bold">${msg}</h2></div>`);}else if(!show)document.getElementById('loadingOverlay')?.remove();}
 function setSyncStatus(ok){const el=document.getElementById('syncStatus');if(el)el.innerHTML=ok?'<i class="fas fa-cloud text-green-600"></i> <span class="text-green-600">Firebase Sync Aktif</span>':'<i class="fas fa-exclamation-triangle text-red-500"></i> <span class="text-red-500">Offline</span>';}
 
-async function fetchMaster(){const fb=await waitFirebase();toggleLoading(true,'Memuat Data Master...');try{await fb.signInAnonymously(fb.auth);const snap=await fb.getDoc(fb.doc(fb.db,'jadwal_angkasa','master'));if(snap.exists()){const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi)dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10})):d.materi;}else await saveMaster(fb);setSyncStatus(true);}catch(e){console.error(e);setSyncStatus(false);}finally{toggleLoading(false);renderDashboard();updateDropdowns();}}
+async function fetchMaster(){const fb=await waitFirebase();toggleLoading(true,'Memuat Data Master...');try{await fb.signInAnonymously(fb.auth);const snap=await fb.getDoc(fb.doc(fb.db,'jadwal_angkasa','master'));if(snap.exists()){const d=snap.data();if(d.prodi)dataProdi=d.prodi;if(d.room)dataRoom=d.room;if(d.materi){dataMateri=typeof d.materi[0]==='string'?d.materi.map(m=>({name:m,quota:10,isBebas:OLD_MATERI_BEBAS_BENTROK.includes(m)})):d.materi.map(m=>({name:m.name,quota:m.quota,isBebas:m.isBebas!==undefined?m.isBebas:OLD_MATERI_BEBAS_BENTROK.includes(m.name)}));}}else await saveMaster(fb);setSyncStatus(true);}catch(e){console.error(e);setSyncStatus(false);}finally{toggleLoading(false);renderDashboard();updateDropdowns();}}
 async function saveMaster(fb){try{await fb.setDoc(fb.doc(fb.db,'jadwal_angkasa','master'),{prodi:dataProdi,room:dataRoom,materi:dataMateri,updatedAt:new Date().toISOString()});}catch(e){alert('Gagal simpan master: '+e.message);}}
 async function fetchProdiSchedule(pid){const fb=await waitFirebase();try{const snap=await fb.getDoc(fb.doc(fb.db,'jadwal_prodi',pid));scheduleData=snap.exists()?snap.data().schedule||{}:{};allProdiSchedules[pid]=scheduleData;}catch(e){scheduleData={};}}
 async function saveProdiSchedule(){if(!currentProdi)return;const fb=await waitFirebase();try{await fb.setDoc(fb.doc(fb.db,'jadwal_prodi',currentProdi.id),{schedule:scheduleData,updatedAt:new Date().toISOString()});allProdiSchedules[currentProdi.id]=scheduleData;renderDashboard();}catch(e){alert('Gagal simpan jadwal: '+e.message);}}
@@ -215,25 +330,85 @@ function updateDropdowns(){const rs=document.getElementById('newProdiRoom');if(r
 function updateMateriInfo(){const el=document.getElementById('materiQuotaInfo'),n=document.getElementById('editMateri').value;if(!n){el.classList.add('hidden');return;}const o=dataMateri.find(m=>m.name===n);if(!o){el.classList.add('hidden');return;}const cur=currentEditCell?scheduleData[currentEditCell.bulan]?.[currentEditCell.minggu]?.[currentEditCell.sesi]?.[currentEditCell.hari]?.materi||'':'';const u=countMateriUsage(n);if(o.quota>0){const s=o.quota-u-(cur===n?0:1);let t=`Total: ${u}x. (Sisa: ${s}x)`;if(s<0){el.className='text-xs font-bold mt-1 text-red-600';t+=' ⚠️ OVERLIMIT!';}else if(s===0){el.className='text-xs font-bold mt-1 text-orange-600';t+=' ⚠️ Habis';}else el.className='text-xs font-semibold mt-1 text-blue-600';el.innerText=t;}else{el.className='text-xs font-semibold mt-1 text-gray-500';el.innerText=`Total: ${u}x. (Tak terbatas)`;}el.classList.remove('hidden');}
 function openSettings(){document.getElementById('settingsModal').classList.remove('hidden');renderSettingsLists();}
 function closeSettings(){document.getElementById('settingsModal').classList.add('hidden');}
-function renderSettingsLists(){document.getElementById('listSettingProdi').innerHTML=dataProdi.map((p,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span><b>${p.name}</b> (${p.defaultRoom})</span><button onclick="deleteProdi(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');document.getElementById('listSettingRoom').innerHTML=dataRoom.map((r,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span>${r}</span><button onclick="deleteRoom(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');document.getElementById('listSettingMateri').innerHTML=dataMateri.map((m,i)=>{const b=m.quota>0?`<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-1 rounded ml-1">K:${m.quota}</span>`:`<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded ml-1">∞</span>`;const fb=MATERI_BEBAS_BENTROK.includes(m.name)?`<span class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded ml-1">bebas</span>`:'';return `<li class="flex justify-between items-center bg-white p-2 rounded border"><div class="flex-1 min-w-0 text-xs break-words">${m.name}${b}${fb}</div><button onclick="deleteMateri(${i})" class="text-red-500 hover:text-red-700 ml-1 flex-shrink-0"><i class="fas fa-trash"></i></button></li>`;}).join('');}
+function renderSettingsLists(){document.getElementById('listSettingProdi').innerHTML=dataProdi.map((p,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span><b>${p.name}</b> (${p.defaultRoom})</span><button onclick="deleteProdi(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');document.getElementById('listSettingRoom').innerHTML=dataRoom.map((r,i)=>`<li class="flex justify-between items-center bg-white p-2 rounded border"><span>${r}</span><button onclick="deleteRoom(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></li>`).join('');document.getElementById('listSettingMateri').innerHTML=dataMateri.map((m,i)=>{const b=m.quota>0?`<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-1 rounded ml-1">K:${m.quota}</span>`:`<span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded ml-1">∞</span>`;const fb=m.isBebas?`<span class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded ml-1">bebas</span>`:'';return `<li class="flex justify-between items-center bg-white p-2 rounded border"><div class="flex-1 min-w-0 text-xs break-words">${m.name}${b}${fb}</div><button onclick="deleteMateri(${i})" class="text-red-500 hover:text-red-700 ml-1 flex-shrink-0"><i class="fas fa-trash"></i></button></li>`;}).join('');}
 function addProdi(){const n=document.getElementById('newProdiName').value.trim(),r=document.getElementById('newProdiRoom').value;if(!n)return;dataProdi.push({id:n.toLowerCase().replace(/\s/g,''),name:n,defaultRoom:r});document.getElementById('newProdiName').value='';saveMaster();renderDashboard();renderSettingsLists();}
 function deleteProdi(i){if(confirm('Hapus prodi ini?')){dataProdi.splice(i,1);saveMaster();renderDashboard();renderSettingsLists();}}
 function addRoom(){const v=document.getElementById('newRoomName').value.trim();if(!v)return;dataRoom.push(v);document.getElementById('newRoomName').value='';saveMaster();updateDropdowns();renderSettingsLists();}
 function deleteRoom(i){if(confirm('Hapus ruang ini?')){dataRoom.splice(i,1);saveMaster();updateDropdowns();renderSettingsLists();}}
-function addMateri(){const v=document.getElementById('newMateriName').value.trim();if(!v)return;const q=parseInt(document.getElementById('newMateriQuota').value)||0;dataMateri.push({name:v,quota:q});document.getElementById('newMateriName').value='';document.getElementById('newMateriQuota').value='';saveMaster();updateDropdowns();renderSettingsLists();}
+function addMateri(){const v=document.getElementById('newMateriName').value.trim();if(!v)return;const q=parseInt(document.getElementById('newMateriQuota').value)||0;const b=document.getElementById('newMateriBebas').checked;dataMateri.push({name:v,quota:q,isBebas:b});document.getElementById('newMateriName').value='';document.getElementById('newMateriQuota').value='10';document.getElementById('newMateriBebas').checked=false;saveMaster();updateDropdowns();renderSettingsLists();}
 function deleteMateri(i){if(confirm('Hapus materi ini?')){dataMateri.splice(i,1);saveMaster();updateDropdowns();renderSettingsLists();}}
 function openSchedule(p){currentProdi=p;fetchProdiSchedule(p.id).then(()=>{document.getElementById('scheduleModal').classList.remove('hidden');renderScheduleTable();}).catch(e=>console.error(e));}
 function closeSchedule(){document.getElementById('scheduleModal').classList.add('hidden');currentProdi=null;scheduleData={};}
-function buildTableContent(prodi,bulan,wrapper){const defRoom=getActiveRoom(prodi.defaultRoom,bulan);if(!scheduleData[bulan])scheduleData[bulan]={};let weeks=Object.keys(scheduleData[bulan]);weeks.sort((a,b)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(b));if(!weeks.length){getDefaultWeeksForMonth(bulan).forEach(w=>{scheduleData[bulan][w]={};});weeks=[...getDefaultWeeksForMonth(bulan)];}weeks.forEach(minggu=>{if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};const wd=document.createElement('div');wd.className='week-container';const tbl=document.createElement('table');tbl.className='jadwal-table w-full text-sm';const tb=document.createElement('tbody');tbl.appendChild(tb);let skip={};daftarHari.forEach(h=>{skip[h]=0;});const mon=getMondayForWeek(bulan,minggu);const hdr=document.createElement('tr');hdr.innerHTML='<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>';const dates=[];daftarHari.forEach((h,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;dates.push(ds);hdr.innerHTML+=`<th>${h}<br><span class="text-xs font-normal">(${ds})</span></th>`;});tb.appendChild(hdr);strukturWaktu.forEach((w,si)=>{if(!scheduleData[bulan][minggu][w.sesi])scheduleData[bulan][minggu][w.sesi]={};const tr=document.createElement('tr');if(si===0){const tm=document.createElement('td');tm.rowSpan=strukturWaktu.length;tm.className='bg-white font-bold border';tm.innerText=minggu;tr.appendChild(tm);}tr.innerHTML+=`<td class="font-bold border">${w.sesi}</td><td class="font-bold border">${w.jam}<td>`;daftarHari.forEach((h,hi)=>{if(skip[h]>0){skip[h]--;return;}const td=document.createElement('td');const cell=scheduleData[bulan][minggu][w.sesi][h]||{materi:'',instruktur:'',ruang:''};const isAuto=cell.materi==='PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';const isFull=cell.isFullDay||isAuto;let isConflict=false;if(cell.materi&&!MATERI_BEBAS_BENTROK.includes(cell.materi)){for(const oid in allProdiSchedules){if(oid===prodi.id)continue;const os=allProdiSchedules[oid]?.[bulan]?.[minggu]?.[w.sesi]?.[h];if(os?.materi===cell.materi)isConflict=true;}}let cls='hari-cell border';if(cell.isLibur)cls+=' bg-red-400 text-white';if(isConflict)cls+=' cell-conflict';td.className=cls;if(isFull){const sp=strukturWaktu.length-si;td.rowSpan=sp;skip[h]=sp-1;}let html=`<div class="cell-content ${isFull?'justify-center items-center':''}">`;if(cell.materi){html+=`<div class="cell-materi ${isFull&&isAuto?'writing-vertical':''}">${cell.materi}</div>`;if(isConflict)html+=`<div style="font-size:.65rem;color:#ea580c;padding:1px 2px;">⚠ Bentrok</div>`;if(cell.instruktur)html+=`<div class="cell-instruktur">${cell.instruktur}</div>`;let ruang=cell.ruang&&cell.ruang!=='-'?cell.ruang:(cell.ruang==='-'?'':defRoom);if(ruang)html+=`<div class="cell-ruang ${cell.isLibur?'bg-red-600':'bg-blue-500'}">${ruang}</div>`;}html+='</div>';td.innerHTML=html;td.onclick=()=>openEditModal(bulan,minggu,w.sesi,h,cell,dates[hi]);tr.appendChild(td);});tb.appendChild(tr);});wd.appendChild(tbl);wrapper.appendChild(wd);});}
+function buildTableContent(prodi,bulan,wrapper){
+    const defRoom=getActiveRoom(prodi.defaultRoom,bulan);
+    if(!scheduleData[bulan])scheduleData[bulan]={};
+    let weeks=Object.keys(scheduleData[bulan]);
+    weeks.sort((a,b)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(b));
+    if(!weeks.length){getDefaultWeeksForMonth(bulan).forEach(w=>{scheduleData[bulan][w]={};});weeks=[...getDefaultWeeksForMonth(bulan)];}
+    weeks.forEach(minggu=>{
+        if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};
+        const wd=document.createElement('div');wd.className='week-container';
+        const tbl=document.createElement('table');tbl.className='jadwal-table w-full text-sm';
+        const tb=document.createElement('tbody');tbl.appendChild(tb);
+        let skip={};daftarHari.forEach(h=>{skip[h]=0;});
+        const mon=getMondayForWeek(bulan,minggu);
+        const hdr=document.createElement('tr');hdr.innerHTML='<th>Minggu Ke-</th><th>Jam Ke-</th><th>Pukul</th>';
+        const dates=[];
+        daftarHari.forEach((h,i)=>{
+            const d=new Date(mon);d.setDate(d.getDate()+i);
+            const ds=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            dates.push(ds);hdr.innerHTML+=`<th>${h}<br><span class="text-xs font-normal">(${ds})</span></th>`;
+        });
+        tb.appendChild(hdr);
+        strukturWaktu.forEach((w,si)=>{
+            if(!scheduleData[bulan][minggu][w.sesi])scheduleData[bulan][minggu][w.sesi]={};
+            const tr=document.createElement('tr');
+            if(si===0){const tm=document.createElement('td');tm.rowSpan=strukturWaktu.length;tm.className='bg-white font-bold border';tm.innerText=minggu;tr.appendChild(tm);}
+            // PERBAIKAN TYPO DI SINI: sebelumnya <td> sekarang </td>
+            tr.innerHTML+=`<td class="font-bold border">${w.sesi}</td><td class="font-bold border">${w.jam}</td>`;
+            daftarHari.forEach((h,hi)=>{
+                if(skip[h]>0){skip[h]--;return;}
+                const td=document.createElement('td');
+                const cell=scheduleData[bulan][minggu][w.sesi][h]||{materi:'',instruktur:'',ruang:''};
+                const isAuto=cell.materi==='PENGUKUHAN SISWA BARU & OPENING CLASS BATCH XVII';
+                const isFull=cell.isFullDay||isAuto;
+                let isConflict=false;
+                if(cell.materi&&!isMateriBebas(cell.materi)){
+                    for(const oid in allProdiSchedules){
+                        if(oid===prodi.id)continue;
+                        const os=allProdiSchedules[oid]?.[bulan]?.[minggu]?.[w.sesi]?.[h];
+                        if(os?.materi===cell.materi)isConflict=true;
+                    }
+                }
+                let cls='hari-cell border';if(cell.isLibur)cls+=' bg-red-400 text-white';if(isConflict)cls+=' cell-conflict';
+                td.className=cls;
+                if(isFull){const sp=strukturWaktu.length-si;td.rowSpan=sp;skip[h]=sp-1;}
+                let html=`<div class="cell-content ${isFull?'justify-center items-center':''}">`;
+                if(cell.materi){
+                    html+=`<div class="cell-materi ${isFull&&isAuto?'writing-vertical':''}">${cell.materi}</div>`;
+                    if(isConflict)html+=`<div style="font-size:.65rem;color:#ea580c;padding:1px 2px;">⚠ Bentrok</div>`;
+                    if(cell.instruktur)html+=`<div class="cell-instruktur">${cell.instruktur}</div>`;
+                    let ruang=cell.ruang&&cell.ruang!=='-'?cell.ruang:(cell.ruang==='-'?'':defRoom);
+                    if(ruang)html+=`<div class="cell-ruang ${cell.isLibur?'bg-red-600':'bg-blue-500'}">${ruang}</div>`;
+                }
+                html+='</div>';td.innerHTML=html;
+                td.onclick=()=>openEditModal(bulan,minggu,w.sesi,h,cell,dates[hi]);
+                tr.appendChild(td);
+            });
+            tb.appendChild(tr);
+        });
+        wd.appendChild(tbl);wrapper.appendChild(wd);
+    });
+}
 function renderScheduleTable(){const wr=document.getElementById('tableWrapper');wr.innerHTML='';if(!currentProdi)return;const bulan=document.getElementById('monthSelector').value;document.getElementById('scheduleTitle').innerText=`JADWAL MATERI - ${currentProdi.name} (${getActiveRoom(currentProdi.defaultRoom,bulan)}) - ${bulan}`;buildTableContent(currentProdi,bulan,wr);}
 function addWeek(){const b=document.getElementById('monthSelector').value;if(!scheduleData[b])scheduleData[b]={};const wk=Object.keys(scheduleData[b]);if(wk.length>=listMingguRomawi.length)return;let mx=-1;wk.forEach(w=>{const i=listMingguRomawi.indexOf(w);if(i>mx)mx=i;});const nx=listMingguRomawi[mx+1];scheduleData[b][nx]={};saveData();renderScheduleTable();}
 function removeWeek(){const b=document.getElementById('monthSelector').value;const wk=Object.keys(scheduleData[b]||{});if(wk.length<=1)return;wk.sort((a,c)=>listMingguRomawi.indexOf(a)-listMingguRomawi.indexOf(c));const last=wk[wk.length-1];if(confirm(`Hapus Minggu Ke-${last}?`)){delete scheduleData[b][last];saveData();renderScheduleTable();}}
 function openEditModal(bulan,minggu,sesi,hari,cell,dateStr){currentEditCell={bulan,minggu,sesi,hari};document.getElementById('editTitle').innerText=`Isi Jadwal: ${hari} (${dateStr}), Minggu ${minggu} – Sesi ${sesi}`;updateDropdowns();document.getElementById('editMateri').value=cell.materi||'';document.getElementById('editInstruktur').value=cell.instruktur||'';document.getElementById('editRuang').value=cell.ruang||'';document.getElementById('editFullDay').checked=cell.isFullDay||false;document.getElementById('editLibur').checked=cell.isLibur||false;updateMateriInfo();document.getElementById('editModal').classList.remove('hidden');}
 function closeEditModal(){document.getElementById('editModal').classList.add('hidden');currentEditCell=null;}
 function closeAiResolutionModal(){document.getElementById('aiResolutionModal').classList.add('hidden');pendingSaveData=null;}
-function checkDetailedConflicts(materi,instruktur,ruang,bulan,minggu,sesi,hari){let c=[];if(materi){const mObj=dataMateri.find(m=>m.name===materi);if(mObj&&mObj.quota>0){let u=countMateriUsage(materi);const same=currentEditCell&&scheduleData[bulan]?.[minggu]?.[sesi]?.[hari]?.materi===materi;if(!same)u++;if(u>mObj.quota)c.push({type:'kuota',msg:`Kuota materi '${materi}' habis/overlimit.`});}}for(const pId in allProdiSchedules){if(pId===currentProdi?.id)continue;const cell=allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];if(!cell||cell.isLibur)continue;const n=(dataProdi.find(p=>p.id===pId)?.name||pId).toUpperCase();if(materi&&cell.materi===materi&&!MATERI_BEBAS_BENTROK.includes(materi))c.push({type:'materi',msg:`Materi '${materi}' sudah dipakai di kelas ${n}.`});if(instruktur&&cell.instruktur&&cell.instruktur.toLowerCase()===instruktur.toLowerCase())c.push({type:'instruktur',msg:`Instruktur '${instruktur}' dijadwalkan mengajar di kelas ${n}.`});if(ruang&&cell.ruang===ruang&&ruang!=='-')c.push({type:'ruang',msg:`Ruang '${ruang}' sedang digunakan oleh kelas ${n}.`});}return c;}
-function getRecommendations(conflicts,bulan,minggu,sesi,hari){let r=[];if(conflicts.some(c=>c.type==='materi'||c.type==='kuota')){const alt=dataMateri.map(m=>{let u=countMateriUsage(m.name);return{name:m.name,sisa:m.quota>0?(m.quota-u):999};}).filter(m=>m.sisa>0&&!MATERI_BEBAS_BENTROK.includes(m.name)).sort((a,b)=>b.sisa-a.sisa).slice(0,3);r.push(alt.length?`Alternatif materi: <b>${alt.map(m=>m.name).join(', ')}</b>.`:'Tidak ada alternatif materi tersedia.');}if(conflicts.some(c=>c.type==='instruktur'))r.push("Ganti instruktur atau pindah ke sesi/hari lain.");if(conflicts.some(c=>c.type==='ruang')){let used=[];for(const pId in allProdiSchedules){const cell=allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];if(cell?.ruang)used.push(cell.ruang);}let free=dataRoom.filter(r=>!used.includes(r));r.push(free.length?`Ruang kosong: <b>${free.join(', ')}</b>.`:"Semua ruang penuh.");}return r.length?r:["Ubah parameter jadwal."];}
-function prodiHasConflictInBulan(pid,bulan){const sd=allProdiSchedules[pid]||{};for(const mg in (sd[bulan]||{}))for(const ss in sd[bulan][mg])for(const hh in sd[bulan][mg][ss]){const cell=sd[bulan][mg][ss][hh];if(!cell?.materi||cell.isLibur||MATERI_BEBAS_BENTROK.includes(cell.materi))continue;for(const oid in allProdiSchedules){if(oid===pid)continue;const os=allProdiSchedules[oid]?.[bulan]?.[mg]?.[ss]?.[hh];if(os?.materi===cell.materi)return true;}}return false;}
+function checkDetailedConflicts(materi,instruktur,ruang,bulan,minggu,sesi,hari){let c=[];if(materi){const mObj=dataMateri.find(m=>m.name===materi);if(mObj&&mObj.quota>0){let u=countMateriUsage(materi);const same=currentEditCell&&scheduleData[bulan]?.[minggu]?.[sesi]?.[hari]?.materi===materi;if(!same)u++;if(u>mObj.quota)c.push({type:'kuota',msg:`Kuota materi '${materi}' habis/overlimit.`});}}for(const pId in allProdiSchedules){if(pId===currentProdi?.id)continue;const cell=allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];if(!cell||cell.isLibur)continue;const n=(dataProdi.find(p=>p.id===pId)?.name||pId).toUpperCase();if(materi&&cell.materi===materi&&!isMateriBebas(materi))c.push({type:'materi',msg:`Materi '${materi}' sudah dipakai di kelas ${n}.`});if(instruktur&&cell.instruktur&&cell.instruktur.toLowerCase()===instruktur.toLowerCase())c.push({type:'instruktur',msg:`Instruktur '${instruktur}' dijadwalkan mengajar di kelas ${n}.`});if(ruang&&cell.ruang===ruang&&ruang!=='-')c.push({type:'ruang',msg:`Ruang '${ruang}' sedang digunakan oleh kelas ${n}.`});}return c;}
+function getRecommendations(conflicts,bulan,minggu,sesi,hari){let r=[];if(conflicts.some(c=>c.type==='materi'||c.type==='kuota')){const alt=dataMateri.map(m=>{let u=countMateriUsage(m.name);return{name:m.name,sisa:m.quota>0?(m.quota-u):999,isBebas:m.isBebas};}).filter(m=>m.sisa>0&&!m.isBebas).sort((a,b)=>b.sisa-a.sisa).slice(0,3);r.push(alt.length?`Alternatif materi: <b>${alt.map(m=>m.name).join(', ')}</b>.`:'Tidak ada alternatif materi tersedia.');}if(conflicts.some(c=>c.type==='instruktur'))r.push("Ganti instruktur atau pindah ke sesi/hari lain.");if(conflicts.some(c=>c.type==='ruang')){let used=[];for(const pId in allProdiSchedules){const cell=allProdiSchedules[pId]?.[bulan]?.[minggu]?.[sesi]?.[hari];if(cell?.ruang)used.push(cell.ruang);}let free=dataRoom.filter(r=>!used.includes(r));r.push(free.length?`Ruang kosong: <b>${free.join(', ')}</b>.`:"Semua ruang penuh.");}return r.length?r:["Ubah parameter jadwal."];}
+function prodiHasConflictInBulan(pid,bulan){const sd=allProdiSchedules[pid]||{};for(const mg in (sd[bulan]||{}))for(const ss in sd[bulan][mg])for(const hh in sd[bulan][mg][ss]){const cell=sd[bulan][mg][ss][hh];if(!cell?.materi||cell.isLibur||isMateriBebas(cell.materi))continue;for(const oid in allProdiSchedules){if(oid===pid)continue;const os=allProdiSchedules[oid]?.[bulan]?.[mg]?.[ss]?.[hh];if(os?.materi===cell.materi)return true;}}return false;}
 function handleSaveClick(){if(!currentEditCell)return;const{bulan,minggu,sesi,hari}=currentEditCell;const materi=document.getElementById('editMateri').value,instruktur=document.getElementById('editInstruktur').value,ruang=document.getElementById('editRuang').value;const isFullDay=document.getElementById('editFullDay').checked,isLibur=document.getElementById('editLibur').checked;const c=checkDetailedConflicts(materi,instruktur,ruang,bulan,minggu,sesi,hari);if(c.length>0){document.getElementById('aiConflictList').innerHTML=c.map(x=>`<li>${x.msg}</li>`).join('');document.getElementById('aiRecommendationList').innerHTML=getRecommendations(c,bulan,minggu,sesi,hari).map(r=>`<li>${r}</li>`).join('');pendingSaveData={bulan,minggu,sesi,hari,materi,instruktur,ruang,isFullDay,isLibur};document.getElementById('aiResolutionModal').classList.remove('hidden');}else{pendingSaveData={bulan,minggu,sesi,hari,materi,instruktur,ruang,isFullDay,isLibur};forceSaveCellData();}}
 function forceSaveCellData(){if(!pendingSaveData)return;const{bulan,minggu,sesi,hari,materi,instruktur,ruang,isFullDay,isLibur}=pendingSaveData;if(!scheduleData[bulan])scheduleData[bulan]={};if(!scheduleData[bulan][minggu])scheduleData[bulan][minggu]={};if(!scheduleData[bulan][minggu][sesi])scheduleData[bulan][minggu][sesi]={};scheduleData[bulan][minggu][sesi][hari]={materi,instruktur,ruang,isFullDay,isLibur};saveData();closeAiResolutionModal();closeEditModal();renderScheduleTable();pendingSaveData=null;}
 function openPrintModal(){const cur=document.getElementById('monthSelector').value;document.getElementById('printMonthList').innerHTML=daftarBulan.map(b=>`<label class="flex items-center space-x-3 cursor-pointer p-3 hover:bg-gray-50 rounded border border-gray-200"><input type="checkbox" value="${b}" class="print-month-cb h-5 w-5" ${b===cur?'checked':''}><span class="text-sm font-bold">Bulan ${b}</span></label>`).join('');document.getElementById('printModal').classList.remove('hidden');}
@@ -261,7 +436,7 @@ function getAllJadwalFlatForProdiList(pl){let all=[];for(let p of pl)all.push(..
 function formatRow(r,prodi,bulan){const ruang=r.ruang&&r.ruang!=='-'?r.ruang:getActiveRoom(prodi?.defaultRoom||'',bulan||r.bulan);let line=`<b>${r.hari}</b> (${r.tgl}) · Sesi ${r.sesi} <span style="color:#6b7280;font-size:.8rem">${r.jam}</span><br>`;line+=`&nbsp;&nbsp;📚 <b>${r.materi}</b>`;if(r.instruktur)line+=` &nbsp;👤 ${r.instruktur}`;if(ruang)line+=` &nbsp;🚪 ${ruang}`;if(r.isLibur)line+=` &nbsp;<span style="color:#ef4444;font-weight:bold">🔴 LIBUR</span>`;return line;}
 function chipsHTML(list){return '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">'+list.map(c=>`<span class="chip" onclick="quickReply('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('')+'</div>';}
 function quickReply(txt){document.getElementById('chatInput').value=txt;sendChatMessage();}
-function answerKonflik(){let f=[];for(const p of dataProdi){const r=getAllJadwalFlat(p.id);for(const rw of r){if(MATERI_BEBAS_BENTROK.includes(rw.materi))continue;for(const p2 of dataProdi){if(p2.id===p.id)continue;const r2=getAllJadwalFlat(p2.id);const m=r2.find(rx=>rx.bulan===rw.bulan&&rx.minggu===rw.minggu&&rx.sesi===rw.sesi&&rx.hari===rw.hari&&rx.materi===rw.materi);if(m)f.push(`⚠️ ${p.name} & ${p2.name}: "${rw.materi}" pada ${rw.hari} (${rw.tgl}) Sesi ${rw.sesi}`);}}}if(!f.length)return "✅ Tidak ada konflik jadwal.";return `⚠️ Ditemukan ${f.length} konflik:<br><br>`+f.slice(0,10).join('<br>');}
+function answerKonflik(){let f=[];for(const p of dataProdi){const r=getAllJadwalFlat(p.id);for(const rw of r){if(isMateriBebas(rw.materi))continue;for(const p2 of dataProdi){if(p2.id===p.id)continue;const r2=getAllJadwalFlat(p2.id);const m=r2.find(rx=>rx.bulan===rw.bulan&&rx.minggu===rw.minggu&&rx.sesi===rw.sesi&&rx.hari===rw.hari&&rx.materi===rw.materi);if(m)f.push(`⚠️ ${p.name} & ${p2.name}: "${rw.materi}" pada ${rw.hari} (${rw.tgl}) Sesi ${rw.sesi}`);}}}if(!f.length)return "✅ Tidak ada konflik jadwal.";return `⚠️ Ditemukan ${f.length} konflik:<br><br>`+f.slice(0,10).join('<br>');}
 function answerKuota(){const list=dataMateri.map(m=>{const u=countMateriUsage(m.name);return{name:m.name,quota:m.quota,used:u,sisa:m.quota>0?m.quota-u:Infinity};});const aman=list.filter(m=>m.sisa>0).sort((a,b)=>(b.sisa===Infinity?99999:b.sisa)-(a.sisa===Infinity?99999:a.sisa));const habis=list.filter(m=>m.sisa!==Infinity&&m.sisa<=0);let out=`💡 Sisa Kuota Materi:<br>`;aman.slice(0,8).forEach(m=>{out+=`• ${m.name}: ${m.sisa===Infinity?'∞ tak terbatas':`${m.sisa} sisa (${m.used}/${m.quota})`}<br>`;});if(habis.length)out+=`<br>🔴 Kuota habis: ${habis.map(m=>m.name).join(', ')}`;return out;}
 function answerRekapForProdiList(pl,bulan){let rows=getAllJadwalFlatForProdiList(pl);if(bulan)rows=rows.filter(r=>r.bulan===bulan);if(!rows.length)return "Tidak ada data jadwal.";const perProdi={};rows.forEach(r=>{const pn=dataProdi.find(p=>p.id===r.prodi)?.name||r.prodi;perProdi[pn]=(perProdi[pn]||0)+1;});const perMateri={};rows.forEach(r=>{perMateri[r.materi]=(perMateri[r.materi]||0)+1;});const topMateri=Object.entries(perMateri).sort((a,b)=>b[1]-a[1]).slice(0,5);let out=`📊 Rekap Jadwal${bulan?' '+bulan:''} (${pl.length} prodi):<br>Total sesi: ${rows.length}<br><br>Per prodi:<br>`+Object.entries(perProdi).map(([p,c])=>`• ${p}: ${c} sesi`).join('<br>');if(topMateri.length)out+=`<br><br>🏆 Top materi: ${topMateri.map(([m,c])=>`${m} (${c}x)`).join(', ')}`;return out;}
 function answerInstruktur(instr){const map={};for(const p of dataProdi){const rows=getAllJadwalFlat(p.id);rows.forEach(r=>{if(r.instruktur){const key=r.instruktur.trim();if(!map[key])map[key]={name:key,count:0,prodis:new Set()};map[key].count++;map[key].prodis.add(p.name);}});}if(instr){const match=Object.values(map).find(i=>i.name.toLowerCase().includes(instr.toLowerCase()));if(match)return `👨‍🏫 ${match.name} mengajar ${match.count} sesi di: ${[...match.prodis].join(', ')}`;return `Instruktur "${instr}" tidak ditemukan.`;}if(Object.keys(map).length===0)return "Belum ada data instruktur.";return `👨‍🏫 Daftar Instruktur:<br>`+Object.values(map).sort((a,b)=>b.count-a.count).slice(0,10).map(i=>`• ${i.name} (${i.count} sesi)`).join('<br>');}
